@@ -3867,3 +3867,235 @@
         });
     });
 </script></body></html>
+
+<!-- Clean Dashboard (No Modals) -->
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Games - Educator Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#308ce8",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "accent-green": "#4ade80",
+                        "accent-yellow": "#fbbf24",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Section -->
+<header class="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3">
+<div class="flex items-center justify-between max-w-2xl mx-auto w-full">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl">school</span>
+<h1 class="text-xl font-bold tracking-tight">My Games</h1>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white flex items-center gap-1 px-4 py-2 rounded-lg font-semibold transition-colors shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+<span class="text-sm">Create New</span>
+</button>
+</div>
+</header>
+<main class="flex-1 max-w-2xl mx-auto w-full pb-24">
+<!-- Search and Filters -->
+<div class="p-4 space-y-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 bg-white dark:bg-slate-800 border-none rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-primary outline-none text-sm placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all" placeholder="Search your lesson games..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+<button class="flex-none px-4 py-1.5 rounded-full bg-primary text-white text-sm font-medium active:scale-95 transition-transform active:bg-primary active:text-white">All Types</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:border-primary transition-colors active:bg-primary active:text-white">Matching</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:border-primary transition-colors active:bg-primary active:text-white">Quizzes</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:border-primary transition-colors active:bg-primary active:text-white">Crosswords</button>
+<button class="flex-none px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:border-primary transition-colors active:bg-primary active:text-white">Flashcards</button>
+</div><div class="flex justify-end mt-2"></div>
+</div>
+<!-- Games List -->
+<div class="px-4 space-y-4">
+<!-- Game Card 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col gap-4 relative">
+<div class="flex gap-4">
+<div class="w-24 h-24 rounded-lg bg-cover bg-center shrink-0 border border-slate-100 dark:border-slate-800" data-alt="Colorful cartoon animals and nature illustrations" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbXhoz67PxFY35uLg4zl4sCF3WqBsnhJMQPpXeeq-WkXl7vBVSf79oMrSExF1u9GkZGV-X_BRtEfodC11C6CXM2acj4BpCNIZrTxre_7gJStdp0gMyNOhwEkchJaMk4uqXy0Iqce-qL6zUN5ZTWuYsC4QeVD1T54Kz8R7JQ6EFaA8Zgz6LY0FuQ-rxwsMUywf4PudVeIzfYFu-GmMQ7poZl3x2ewU8sodNC3sUYtoGoPjD9jfWCzdu9PlRYRZ5MB9U7pMJK93rxVY');">
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<h3 class="font-bold text-lg leading-tight">Animal Vocabulary</h3>
+<div class="flex items-center gap-3 mt-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary">play_circle</span>
+                                    142 Plays
+                                </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-accent-green">stars</span>
+                                    88% Avg
+                                </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Matching</span>
+<span class="px-2 py-0.5 rounded bg-accent-yellow/10 text-accent-yellow text-[10px] font-bold uppercase tracking-wider">Elementary</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<button class="col-span-1 py-2 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-all active:scale-95 transition-transform">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Game Card 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col gap-4 relative">
+<div class="flex gap-4">
+<div class="w-24 h-24 rounded-lg bg-cover bg-center shrink-0 border border-slate-100 dark:border-slate-800" data-alt="Abstract pile of old books and letters" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBg30k8_nrND-Xc_0XTb4yaD_TfZOtRx2w8B37yh39t_dO_YGc0xG4CnezMqqjgvpG0gYINgCeBYAVN-bNVxRHrcE1ICUewIW5wMRU1sTqPA6HuKbZmURlGh9gdR00nepmkU-D_WaFUbuYnNJH-MhGF_sEZp_G90C8iUrsrdjttj5ILejI91ZPSA798ETIFw5aJG_REKAnMtnAaGAGsUYRXUpBkE0JVPpMEedYH1uHl-bpAIeqronjf7tQfVD4cUx827rg0zX3NPsE');">
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<h3 class="font-bold text-lg leading-tight">Verb Tenses: Past vs Present</h3>
+<div class="flex items-center gap-3 mt-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary">play_circle</span>
+                                    86 Plays
+                                </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-accent-green">stars</span>
+                                    74% Avg
+                                </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Quiz</span>
+<span class="px-2 py-0.5 rounded bg-accent-yellow/10 text-accent-yellow text-[10px] font-bold uppercase tracking-wider">Intermediate</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<button class="col-span-1 py-2 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-all active:scale-95 transition-transform">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- Game Card 3 -->
+<div class="bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col gap-4 relative">
+<div class="flex gap-4">
+<div class="w-24 h-24 rounded-lg bg-cover bg-center shrink-0 border border-slate-100 dark:border-slate-800" data-alt="Conceptual image of world flags and globe" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB_HNzNySH7dhfX0_XtGGlLTkiV6QOBgJxpe7WcID2zfPydSzhs8STj_Sh4YjbugQyIPYYJiD453W2Ch5xvCFTTY5um3-Ph9CJHlncsoMgfNiPPVJy2bSLIVhg4D88b_M8MNcjtWpAJ0qzYtnmFSRJJ77q_zsiXfrRxHMIw4yZbzZdsnEANbPAdfJUNH-YFKIkoUBlBNE898MpC1Stgx7O7p_sFGAg7-G3XhOld_VQcGB8mYBSN9mDql4_6PaGG9opXDlQ9RrbOQc0');">
+</div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<h3 class="font-bold text-lg leading-tight">Countries &amp; Capitals</h3>
+<div class="flex items-center gap-3 mt-1 text-slate-500 dark:text-slate-400 text-xs font-medium">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-primary">play_circle</span>
+                                    215 Plays
+                                </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-accent-green">stars</span>
+                                    92% Avg
+                                </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Crossword</span>
+<span class="px-2 py-0.5 rounded bg-accent-yellow/10 text-accent-yellow text-[10px] font-bold uppercase tracking-wider">Advanced</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<button class="col-span-1 py-2 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-all active:scale-95 transition-transform">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="col-span-1 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 transition-all">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 pb-6 pt-2">
+<div class="max-w-2xl mx-auto grid grid-cols-4 gap-1">
+<a class="flex flex-col items-center gap-1 text-slate-400 py-1 transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary py-1 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">gamepad</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">My Games</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 py-1 transition-colors" href="#">
+<span class="material-symbols-outlined">auto_stories</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">Library</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 py-1 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>
