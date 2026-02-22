@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LexiPlay Game Editor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#308ce8",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "accent-green": "#4ade80",
+                        "accent-yellow": "#facc15",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between h-16 px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center bg-primary text-white rounded-lg p-1.5">
+<span class="material-symbols-outlined text-2xl">school</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-tight tracking-tight">LexiPlay <span class="text-slate-400 font-normal">|</span> Game Editor</h1>
+<p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-accent-green fill-1">check_circle</span>
+                    All changes saved
+                </p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-sm">save</span>
+                Save Draft
+            </button>
+<button class="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 shadow-md shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-sm">rocket_launch</span>
+                Publish
+            </button>
+<div class="ml-2 pl-4 border-l border-slate-200 dark:border-slate-800">
+<div class="size-9 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-white dark:border-slate-800 shadow-sm">
+<img alt="User profile" data-alt="Portrait of a friendly teacher avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIr5sqYGMoyAFr9QiaHka5jlH4uUDIpNWW54yOTaHd1PxsBHUsJI9Zra-UtN9mYlcn-ApKXcITvEkZ-0U3ccbNppuWPSMvpcMh2mjbpx3cN0aNwyJeAYmsnI8wPD5PToW07ocP_uq3ppz38MDoEi0tYlpYZruSjypnjOCNz4zNfEK8qX91ubcmgPu-C810T6DQ3yZ41gCBYY24pzTWSvYlPmYLuy9BlKE3IjyBa7r4NtOR3GS9jhXQVsHCfHZSV36n0pO5X2IOUQQ"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Content Input -->
+<aside class="w-[380px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800/50">
+<h2 class="text-base font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">format_list_bulleted</span>
+                    Vocabulary List
+                </h2>
+<p class="text-xs text-slate-500 mt-1">Add words and phrases for your game.</p>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4">
+<!-- Input Row 1 -->
+<div class="group flex flex-col gap-2 p-3 bg-background-light dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-primary/50 transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 cursor-grab active:cursor-grabbing text-sm">drag_indicator</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium p-0 placeholder:text-slate-400" placeholder="Enter word or phrase..." type="text" value="Apple"/>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<div class="flex items-center gap-2 mt-1">
+<button class="flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold text-slate-500 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg hover:border-primary/40 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-sm">image</span>
+                            ADD IMAGE
+                        </button>
+<button class="flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold text-slate-500 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg hover:border-primary/40 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-sm">mic</span>
+                            ADD AUDIO
+                        </button>
+</div>
+</div>
+<!-- Input Row 2 -->
+<div class="group flex flex-col gap-2 p-3 bg-background-light dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-primary/50 transition-colors">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 cursor-grab active:cursor-grabbing text-sm">drag_indicator</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium p-0 placeholder:text-slate-400" placeholder="Enter word or phrase..." type="text" value="Banana"/>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">delete</span>
+</button>
+</div>
+<div class="flex items-center gap-2 mt-1">
+<div class="relative size-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-600 group/img">
+<img alt="Banana" class="object-cover size-full" data-alt="A bunch of yellow bananas" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8Fql-0pzcyVKu3V_g_a1gePODJ7jxTZmBM4ZJaUPOtfHhxoPIobCUgPtlJfkkQ2mjEUrGz-hEw-atDF3cgMG1sHy0OqTNr2gLpoOdObf-hCTEirljgblvEn816y4sjSeV0eqVrG6Cs9YPgOAB5QnYsygaryC7fKdKGVaFrEDrZLSz-cAPkbAQkms1udz6cJkdCIs3u-TeHFxtwh-7ZdP0PAQxbSHGeeMv2xE-uMnsBnL77PyEnjUaZolfL0OJtU0cPBvGqR3fIJg"/>
+<button class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+<span class="material-symbols-outlined text-white text-xs font-bold">close</span>
+</button>
+</div>
+<button class="flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold text-slate-500 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg hover:border-primary/40 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-sm">mic</span>
+                            ADD AUDIO
+                        </button>
+</div>
+</div>
+<!-- Input Row 3 (Placeholder) -->
+<div class="group flex flex-col gap-2 p-3 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl opacity-60">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-300 text-sm">drag_indicator</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium p-0 placeholder:text-slate-400 italic" placeholder="Enter your words here..." type="text"/>
+</div>
+</div>
+<button class="mt-2 flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-slate-400 hover:text-primary hover:border-primary/50 transition-all font-semibold text-sm">
+<span class="material-symbols-outlined">add_circle</span>
+                    Add New Row
+                </button>
+</div>
+</aside>
+<!-- Center Panel: Live Game Preview -->
+<section class="flex-1 bg-background-light dark:bg-background-dark p-8 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="text-xl font-bold">Live Preview</h2>
+<p class="text-sm text-slate-500">Interactive simulation of your current game build.</p>
+</div>
+<button class="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-primary bg-primary/10 rounded-full hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-sm">refresh</span>
+                    REFRESH PREVIEW
+                </button>
+</div>
+<!-- Preview Canvas -->
+<div class="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 p-12 flex flex-col items-center justify-center min-h-[500px] relative overflow-hidden">
+<!-- Decorative Game UI elements -->
+<div class="absolute top-6 left-6 flex items-center gap-4">
+<div class="px-4 py-2 bg-accent-yellow/20 text-accent-yellow-700 rounded-lg font-bold text-sm border border-accent-yellow/30">Score: 450</div>
+<div class="px-4 py-2 bg-accent-green/20 text-accent-green-700 rounded-lg font-bold text-sm border border-accent-green/30 tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">timer</span>
+                        02:45
+                    </div>
+</div>
+<div class="max-w-3xl w-full">
+<div class="grid grid-cols-4 gap-4">
+<!-- Card 1 (Active) -->
+<div class="aspect-square bg-primary text-white rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center transform hover:scale-105 transition-transform cursor-pointer border-4 border-white">
+<span class="text-lg font-bold">Apple</span>
+</div>
+<!-- Card 2 -->
+<div class="aspect-square bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors">
+<div class="size-16 rounded-lg overflow-hidden">
+<img alt="Apple image" class="object-cover size-full" data-alt="A single red apple" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChl4U_bC7aA36ck_wqIunfaRNObEK0Y3YuCoSfRBtv1-LQiQ8fkcFkzYZ1eFcORFIumQKXL3KklDmjFgG8Ug-We5gnVEZByciiAMHCyAq_7Iilhkag8D7i6ZBKuOb0mZ2IkjWN0sCaJxaYRqcfV9M_y65kzL1EEMNRlphcCp8P_9g_ummN2OZ-WEhaeTT9_39l0xsCHd9xmx6BpH7fy4aRg3d9s1HaaBFXAaf4VVrtqcF0zb7LLe704JDIGXwK9cHULPrYKIVsEgA"/>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="aspect-square bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors group">
+<span class="material-symbols-outlined text-3xl text-slate-300 group-hover:text-primary transition-colors">help_outline</span>
+</div>
+<!-- Card 4 (Match Found) -->
+<div class="aspect-square bg-accent-green text-white rounded-xl shadow-lg shadow-accent-green/30 flex flex-col items-center justify-center border-4 border-white">
+<span class="material-symbols-outlined text-3xl mb-1">check_circle</span>
+<span class="text-xs font-bold">MATCH!</span>
+</div>
+<!-- Row 2 -->
+<div class="aspect-square bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors group">
+<span class="material-symbols-outlined text-3xl text-slate-300 group-hover:text-primary transition-colors">help_outline</span>
+</div>
+<div class="aspect-square bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors group">
+<span class="material-symbols-outlined text-3xl text-slate-300 group-hover:text-primary transition-colors">help_outline</span>
+</div>
+<div class="aspect-square bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors group">
+<span class="material-symbols-outlined text-3xl text-slate-300 group-hover:text-primary transition-colors">help_outline</span>
+</div>
+<div class="aspect-square bg-slate-50 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-colors group">
+<span class="material-symbols-outlined text-3xl text-slate-300 group-hover:text-primary transition-colors">help_outline</span>
+</div>
+</div>
+</div>
+<div class="mt-12 text-center">
+<h3 class="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Memory Match</h3>
+<p class="text-slate-500 mt-1 max-w-sm">Flip cards to find pairs of words and their corresponding images.</p>
+</div>
+</div>
+</section>
+<!-- Right Panel: Game Settings -->
+<aside class="w-[320px] bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800/50">
+<h2 class="text-base font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">settings</span>
+                    Game Settings
+                </h2>
+<p class="text-xs text-slate-500 mt-1">Customize behavior and difficulty.</p>
+</div>
+<div class="p-6 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
+<!-- Section: Game Type -->
+<div class="space-y-3">
+<label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Game Type</label>
+<div class="relative">
+<select class="w-full bg-background-light dark:bg-slate-800 border-none rounded-lg py-3 px-4 text-sm font-medium appearance-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer">
+<option selected="" value="matching">Memory Matching</option>
+<option value="choice">Multiple Choice</option>
+<option value="blanks">Fill in the Blanks</option>
+<option value="order">Sentence Order</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Section: Difficulty -->
+<div class="space-y-3">
+<label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Difficulty</label>
+<div class="flex p-1 bg-background-light dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+<button class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-600 transition-all">Easy</button>
+<button class="flex-1 py-2 text-xs font-bold rounded-lg bg-white dark:bg-slate-700 text-primary shadow-sm ring-1 ring-slate-200 dark:ring-slate-600 transition-all">Medium</button>
+<button class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-slate-600 transition-all">Hard</button>
+</div>
+</div>
+<!-- Section: Rules -->
+<div class="space-y-6 pt-4 border-t border-slate-100 dark:border-slate-800/50">
+<div class="flex items-center justify-between">
+<div class="space-y-0.5">
+<label class="text-sm font-bold block">Time Limit</label>
+<span class="text-xs text-slate-500">Adds a countdown clock</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div class="space-y-0.5">
+<label class="text-sm font-bold block">Show Scoring</label>
+<span class="text-xs text-slate-500">Enable points and ranks</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<div class="space-y-0.5">
+<label class="text-sm font-bold block">Shuffle Content</label>
+<span class="text-xs text-slate-500">Randomize card positions</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Panel Footer -->
+<div class="p-6 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800/50">
+<button class="w-full flex items-center justify-center gap-2 py-3 bg-slate-900 dark:bg-slate-700 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">
+<span class="material-symbols-outlined text-sm">play_circle</span>
+                    Play Full Preview
+                </button>
+</div>
+</aside>
+</main>
+</body></html>
