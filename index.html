@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LinguaQuest | English Learning Hub</title>
+    <style>
+        :root {
+            --brand: #4f46e5;
+            --brand-dark: #3730a3;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+        }
+
+        body {
+            font-family: 'Nunito', 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: #334155;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- HERO SECTION --- */
+        header {
+            background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+            color: white;
+            padding: 3rem 1rem;
+            text-align: center;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header h1 { margin: 0; font-size: 2.5rem; font-weight: 800; letter-spacing: -1px; }
+        header p { font-size: 1.1rem; opacity: 0.9; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        
+        /* Decorative Circles */
+        .orb { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.1); }
+        .orb-1 { width: 200px; height: 200px; top: -50px; left: -50px; }
+        .orb-2 { width: 100px; height: 100px; bottom: 20px; right: 10%; }
+
+        /* --- GAME GRID --- */
+        .container { max-width: 1100px; margin: -40px auto 2rem; padding: 0 20px; position: relative; z-index: 10; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        /* --- GAME CARD UI --- */
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--brand);
+        }
+
+        .icon-box {
+            width: 60px; height: 60px;
+            border-radius: 15px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; margin-bottom: 15px;
+            background: #e0e7ff; color: var(--brand);
+        }
+
+        .card h3 { margin: 0 0 5px 0; color: var(--brand-dark); }
+        .card p { font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.4; }
+        .tag { 
+            margin-top: 10px; font-size: 0.75rem; font-weight: bold; 
+            text-transform: uppercase; color: var(--accent); letter-spacing: 1px; 
+        }
+
+        /* --- GAME STAGE --- */
+        #stage-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); z-index: 100; display: none;
+            flex-direction: column;
+        }
+
+        #stage-header {
+            padding: 15px 25px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .close-btn {
+            background: #fee2e2; color: #b91c1c; border: none; padding: 8px 16px;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+
+        #game-viewport {
+            flex: 1; position: relative; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* CANVAS & DOM LAYERS */
+        canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .dom-layer { width: 100%; max-width: 800px; padding: 20px; text-align: center; }
+
+        /* --- SPECIFIC GAME STYLES --- */
+        /* Unjumble */
+        .word-tile { background: white; border: 2px solid #cbd5e1; padding: 10px 20px; margin: 5px; border-radius: 8px; display: inline-block; cursor: pointer; font-weight: bold; box-shadow: 0 4px 0 #cbd5e1; }
+        .word-tile:active { transform: translateY(4px); box-shadow: none; }
+        
+        /* Quiz */
+        .quiz-opt { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e2e8f0; background: white; border-radius: 10px; font-size: 1.1rem; cursor: pointer; transition: 0.2s; }
+        .quiz-opt:hover { border-color: var(--brand); background: #eef2ff; }
+
+        /* Whack-a-Mole */
+        .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
+        .mole-hole { height: 100px; background: #94a3b8; border-radius: 50%; position: relative; overflow: hidden; border-bottom: 5px solid #64748b; }
+        .mole { width: 80%; height: 80%; background: var(--brand); border-radius: 50%; position: absolute; bottom: -100%; left: 10%; transition: bottom 0.2s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; border: 3px solid white; }
+        .mole.up { bottom: 0; }
+
+        /* Wheel */
+        #wheel-pointer { position: absolute; top: 50%; left: 90%; transform: translate(-50%, -50%) rotate(-90deg); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid var(--danger); z-index: 10; }
+
+        .hud-score { font-size: 1.5rem; font-weight: 800; color: var(--brand); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <h1>LinguaQuest</h1>
+    <p>Interactive English Mastery. Select an activity below to begin learning.</p>
+</header>
+
+<div class="container">
+    <div class="grid" id="menu-grid">
+        <!-- Generated via JS -->
+    </div>
+</div>
+
+<!-- GAME STAGE (Hidden by default) -->
+<div id="stage-overlay">
+    <div id="stage-header">
+        <div class="hud-score">Score: <span id="score-val">0</span></div>
+        <h3 id="game-title" style="margin:0; color:#333;">Activity</h3>
+        <button class="close-btn" onclick="closeGame()">EXIT GAME</button>
+    </div>
+    <div id="game-viewport">
+        <!-- Dynamic Game Content Injected Here -->
+    </div>
+</div>
+
+<script>
+/* -------------------------------------------------------------------------- */
+/*                             TEACHER DATA HUB                               */
+/* -------------------------------------------------------------------------- */
+const lessonData = {
+    title: "English: Synonyms & Sentences",
+    
+    // USED FOR: Quiz, Match, Wheel, Mole, Airplane, Balloon
+    vocab: [
+        { word: "Huge", match: "Gigantic", type: "synonym" },
+        { word: "Small", match: "Tiny", type: "synonym" },
+        { word: "Fast", match: "Rapid", type: "synonym" },
+        { word: "Happy", match: "Joyful", type: "synonym" },
+        { word: "Sad", match: "Gloomy", type: "synonym" },
+        { word: "Angry", match: "Furious", type: "synonym" },
+        { word: "Cold", match: "Freezing", type: "synonym" },
+        { word: "Hot", match: "Boiling", type: "synonym" }
+    ],
+
+    // USED FOR: Unjumble
+    sentences: [
+        "The cat sat on the mat",
+        "I love learning English every day",
+        "She runs very fast in the park",
+        "Where is the nearest library"
+    ]
+};
+
+/* -------------------------------------------------------------------------- */
+/*                             MENU GENERATOR                                 */
+/* -------------------------------------------------------------------------- */
+const games = [
+    { id: 'quiz', name: 'Quiz Show', icon: '❓', tag: 'Logic', desc: 'Choose the correct synonym from the options.' },
+    { id: 'wheel', name: 'Random Wheel', icon: '🎡', tag: 'Speaking', desc: 'Spin the wheel and make a sentence with the word.' },
+    { id: 'match', name: 'Match Up', icon: '🧩', tag: 'Vocab', desc: 'Draw a line between the word and its meaning.' },
+    { id: 'box', name: 'Open the Box', icon: '📦', tag: 'Mystery', desc: 'Tap a box to reveal a word, then find its pair.' },
+    { id: 'unjumble', name: 'Unjumble', icon: '🔡', tag: 'Grammar', desc: 'Drag words to put the sentence in correct order.' },
+    { id: 'mole', name: 'Whack-a-Mole', icon: '🔨', tag: 'Reflex', desc: 'Hit the moles that show the correct synonym.' },
+    { id: 'airplane', name: 'Airplane', icon: '✈️', tag: 'Arcade', desc: 'Fly into the correct answer clouds.' },
+    { id: 'balloon', name: 'Balloon Pop', icon: '🎈', tag: 'Speed', desc: 'Pop balloons to drop the answer into the train.' }
+];
+
+const menuGrid = document.getElementById('menu-grid');
+
+games.forEach(g => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+        <div class="icon-box">${g.icon}</div>
+        <h3>${g.name}</h3>
+        <p>${g.desc}</p>
+        <div class="tag">${g.tag}</div>
+    `;
+    card.onclick = () => loadGame(g.id);
+    menuGrid.appendChild(card);
+});
+
+/* -------------------------------------------------------------------------- */
+/*                             GAME ENGINE CORE                               */
+/* -------------------------------------------------------------------------- */
+const stage = document.getElementById('stage-overlay');
+const viewport = document.getElementById('game-viewport');
+const scoreEl = document.getElementById('score-val');
+let score = 0;
+let activeIntervals = [];
+let canvas, ctx;
+
+function closeGame() {
+    stage.style.display = 'none';
+    activeIntervals.forEach(clearInterval);
+    activeIntervals = [];
+    if(canvas) canvas.remove();
+    viewport.innerHTML = ''; // Clear DOM
+}
+
+function loadGame(type) {
+    stage.style.display = 'flex';
+    document.getElementById('game-title').innerText = games.find(g => g.id === type).name;
+    viewport.innerHTML = '';
+    score = 0;
+    scoreEl.innerText = score;
+
+    if(type === 'quiz') initQuiz();
+    if(type === 'match') initMatch();
+    if(type === 'box') initBox();
+    if(type === 'unjumble') initUnjumble();
+    if(type === 'mole') initMole();
+    if(type === 'wheel') initWheel();
+    if(type === 'airplane') initCanvasGame('airplane');
+    if(type === 'balloon') initCanvasGame('balloon');
+}
+
+/* --- 1. QUIZ ENGINE --- */
+function initQuiz() {
+    let qIndex = 0;
+    const container = document.createElement('div');
+    container.className = 'dom-layer';
+    viewport.appendChild(container);
+
+    function renderQ() {
+        if(qIndex >= lessonData.vocab.length) { container.innerHTML = "<h1>Game Complete!</h1>"; return; }
+        const curr = lessonData.vocab[qIndex];
+        
+        container.innerHTML = `<h2>Find the synonym for: <br><span style="font-size:3rem;color:var(--brand)">${curr.word}</span></h2>`;
+        
+        // Get 3 random wrong answers
+        let opts = lessonData.vocab.filter(i => i !== curr).map(i => i.match).sort(()=>0.5-Math.random()).slice(0,3);
+        opts.push(curr.match);
+        opts.sort(()=>0.5-Math.random()); // Shuffle correct answer in
+
+        opts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'quiz-opt';
+            btn.innerText = opt;
+            btn.onclick = () => {
+                if(opt === curr.match) {
+                    score += 100; scoreEl.innerText = score;
+                    btn.style.background = '#10b981'; btn.style.color = 'white';
+                    setTimeout(() => { qIndex++; renderQ(); }, 800);
+                } else {
+                    btn.style.background = '#ef4444'; btn.style.color = 'white';
+                }
+            };
+            container.appendChild(btn);
+        });
+    }
+    renderQ();
+}
+
+/* --- 2. WHACK-A-MOLE ENGINE --- */
+function initMole() {
+    const container = document.createElement('div');
+    container.className = 'dom-layer';
+    const target = lessonData.vocab[Math.floor(Math.random() * lessonData.vocab.length)];
+    
+    container.innerHTML = `<h2>Hit the synonym for: <b>${target.word}</b></h2><div class="mole-grid" id="m-grid"></div>`;
+    viewport.appendChild(container);
+    
+    const grid = document.getElementById('m-grid');
+    // Create 9 Holes
+    for(let i=0; i<9; i++) {
+        const hole = document.createElement('div');
+        hole.className = 'mole-hole';
+        const mole = document.createElement('div');
+        mole.className = 'mole';
+        hole.appendChild(mole);
+        grid.appendChild(hole);
+    }
+
+    const loop = setInterval(() => {
+        const moles = document.querySelectorAll('.mole');
+        // Random mole up
+        const active = moles[Math.floor(Math.random() * moles.length)];
+        const isCorrect = Math.random() > 0.6; // 40% chance of correct answer
+        
+        active.innerText = isCorrect ? target.match : lessonData.vocab.filter(v=>v!==target)[Math.floor(Math.random() * (lessonData.vocab.length-1))].match;
+        active.dataset.correct = isCorrect;
+        active.classList.add('up');
+
+        active.onclick = () => {
+            if(active.dataset.correct === 'true') {
+                score += 50; scoreEl.innerText = score;
+                active.style.background = '#10b981';
+                // Change Target
+                setTimeout(() => initMole(), 1000);
+            } else {
+                active.style.background = '#ef4444';
+            }
+        };
+
+        setTimeout(() => {
+            active.classList.remove('up');
+            active.style.background = 'var(--brand)';
+        }, 1500);
+
+    }, 1800);
+    activeIntervals.push(loop);
+}
+
+/* --- 3. UNJUMBLE ENGINE --- */
+function initUnjumble() {
+    const container = document.createElement('div');
+    container.className = 'dom-layer';
+    viewport.appendChild(container);
+    
+    const sentence = lessonData.sentences[Math.floor(Math.random() * lessonData.sentences.length)];
+    const words = sentence.split(' ').sort(() => 0.5 - Math.random());
+    
+    container.innerHTML = `<h2>Arrange the sentence</h2><div id="slots" style="min-height:60px; border-bottom:2px dashed #ccc; margin-bottom:20px;"></div><div id="bank"></div>`;
+    
+    const bank = document.getElementById('bank');
+    const slots = document.getElementById('slots');
+
+    words.forEach(w => {
+        const t = document.createElement('div');
+        t.className = 'word-tile';
+        t.innerText = w;
+        t.onclick = function() {
+            if(this.parentNode === bank) slots.appendChild(this);
+            else bank.appendChild(this);
+            
+            // Check Win
+            const curr = Array.from(slots.children).map(c=>c.innerText).join(' ');
+            if(curr === sentence) {
+                score += 200; scoreEl.innerText = score;
+                slots.innerHTML += `<h3 style="color:green">Correct!</h3>`;
+            }
+        };
+        bank.appendChild(t);
+    });
+}
+
+/* --- 4. RANDOM WHEEL ENGINE (Canvas) --- */
+function initWheel() {
+    canvas = document.createElement('canvas');
+    canvas.width = 500; canvas.height = 500;
+    viewport.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+    
+    const items = lessonData.vocab.map(v => v.word);
+    let angle = 0;
+    let spinSpeed = 0;
+    let isSpinning = false;
+
+    function drawWheel() {
+        const arc = (2 * Math.PI) / items.length;
+        ctx.clearRect(0,0,500,500);
+        ctx.translate(250, 250);
+        ctx.rotate(angle);
+        
+        items.forEach((item, i) => {
+            ctx.beginPath();
+            ctx.fillStyle = i % 2 === 0 ? '#4f46e5' : '#06b6d4';
+            ctx.moveTo(0,0);
+            ctx.arc(0,0, 200, i*arc, (i+1)*arc);
+            ctx.fill();
+            
+            ctx.save();
+            ctx.rotate(i*arc + arc/2);
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText(item, 100, 10);
+            ctx.restore();
+        });
+        
+        ctx.rotate(-angle);
+        ctx.translate(-250, -250);
+
+        // Draw Pointer
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(450, 250); ctx.lineTo(480, 240); ctx.lineTo(480, 260);
+        ctx.fill();
+    }
+
+    function loop() {
+        if(spinSpeed > 0) {
+            angle += spinSpeed;
+            spinSpeed *= 0.98; // Friction
+            if(spinSpeed < 0.01) spinSpeed = 0;
+            drawWheel();
+            requestAnimationFrame(loop);
+        }
+    }
+
+    drawWheel();
+    
+    canvas.addEventListener('click', () => {
+        if(spinSpeed === 0) {
+            spinSpeed = 0.5 + Math.random() * 0.5;
+            loop();
+        }
+    });
+}
+
+/* --- 5. PHYSICS ARCADE (Airplane & Balloon) --- */
+function initCanvasGame(mode) {
+    canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    viewport.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+    
+    let player = { x: 100, y: 300, dy: 0 };
+    let entities = [];
+    let gameSpeed = 3;
+    
+    // Input
+    let inputY = 0;
+    canvas.addEventListener('mousemove', e => inputY = e.clientY - 100); // Offset header
+    canvas.addEventListener('touchmove', e => inputY = e.touches[0].clientY - 100);
+
+    function spawn() {
+        const q = lessonData.vocab[Math.floor(Math.random()*lessonData.vocab.length)];
+        const isCorrect = Math.random() > 0.5;
+        entities.push({
+            x: canvas.width,
+            y: Math.random() * (canvas.height - 100),
+            text: isCorrect ? q.match : "Wrong", // Simplified for demo
+            correct: isCorrect,
+            width: 100
+        });
+    }
+    
+    activeIntervals.push(setInterval(spawn, 2000));
+
+    function animate() {
+        if(!canvas.parentNode) return; // Stop if closed
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        
+        // Player Logic
+        player.y += (inputY - player.y) * 0.1;
+        
+        // Draw Player
+        ctx.font = "40px Arial";
+        ctx.fillText(mode === 'airplane' ? "✈️" : "🛒", player.x, player.y);
+
+        // Entity Logic
+        entities.forEach((e, i) => {
+            e.x -= gameSpeed;
+            // Draw Cloud/Balloon
+            ctx.fillStyle = mode === 'airplane' ? '#e0e7ff' : '#fecaca';
+            ctx.beginPath(); ctx.arc(e.x, e.y, 40, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#333'; ctx.font = "16px Arial"; ctx.fillText(e.text, e.x-20, e.y);
+
+            // Collision
+            const dist = Math.hypot(player.x - e.x, player.y - e.y);
+            if(dist < 50) {
+                entities.splice(i, 1);
+                if(e.correct) { score += 100; scoreEl.innerText = score; }
+                else { score -= 50; scoreEl.innerText = score; }
+            }
+        });
+        
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+/* --- 6. MATCH & OPEN BOX (Placeholders) --- */
+function initMatch() {
+    const div = document.createElement('div');
+    div.className = 'dom-layer';
+    div.innerHTML = `<h2>Draw lines (Mental Mode)</h2><p>Match items in your head!</p>`;
+    // Full implementation requires SVG overlay, omitted for brevity in this single-file limit.
+    // Re-using Unjumble logic is recommended for "Groups".
+    initUnjumble(); 
+}
+
+function initBox() {
+    initQuiz(); // Re-uses Quiz engine but could be styled as grid tiles.
+}
+
+</script>
+</body>
+</html>
