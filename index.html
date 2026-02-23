@@ -3,414 +3,577 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnglishHub Pro - Ultimate Edition</title>
+    <title>EnglishHub Pro - Perfect Layout</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #6366f1;
             --primary-light: #eef2ff;
-            --bg: #f8fafc;
+            --bg: #fcfcfd;
             --text: #1e293b;
             --text-light: #64748b;
             --border: #e2e8f0;
             --accent: #f43f5e;
-            --success: #22c55e;
             --white: #ffffff;
             --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         }
 
-        * { box-sizing: border-box; transition: all 0.3s ease; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; overflow-x: hidden; }
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 
-        /* --- 导航栏 (Sticky & Glassmorphism) --- */
+        /* --- 导航栏 --- */
         nav {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(12px);
-            padding: 1rem 5%;
+            padding: 1.2rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 2000;
         }
-        .logo { font-weight: 900; font-size: 1.6rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .nav-links { display: flex; gap: 8px; }
-        .nav-item { 
-            cursor: pointer; font-weight: 600; color: var(--text-light); 
-            padding: 10px 20px; border-radius: 14px; 
-        }
-        .nav-item:hover, .nav-item.active { color: var(--primary); background: var(--white); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+        .logo { font-weight: 900; font-size: 1.5rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-item { cursor: pointer; font-weight: 700; color: var(--text); padding: 8px 16px; border-radius: 12px; font-size: 1rem; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; min-height: calc(100vh - 80px); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
         .hidden { display: none !important; }
 
-        /* --- 通用卡片样式 (Perfect Layout) --- */
-        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 20px; }
+        /* --- 返回链接样式 --- */
+        .back-link { cursor: pointer; font-weight: 700; color: var(--primary); font-size: 1.1rem; display: inline-block; margin-bottom: 20px; }
+        .back-link:hover { text-decoration: underline; }
+
+        /* --- 大卡片布局 (Perfect Layout) --- */
+        .hero-title { font-size: 2.8rem; font-weight: 900; margin-bottom: 40px; color: var(--text); letter-spacing: -1px; }
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
         .main-card { 
-            background: var(--white); padding: 50px 30px; border-radius: 35px; border: 1px solid var(--border); 
-            cursor: pointer; text-align: center; position: relative; overflow: hidden;
+            background: var(--white); padding: 50px 40px; border-radius: 30px; border: 1px solid var(--border); 
+            cursor: pointer; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .main-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.12); }
-        .card-icon { font-size: 60px; margin-bottom: 20px; display: block; }
-        .main-card h2 { margin: 10px 0; font-size: 1.5rem; font-weight: 800; }
-        .main-card p { color: var(--text-light); font-size: 1rem; }
+        .main-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.15); }
+        .card-icon { font-size: 65px; margin-bottom: 25px; display: block; }
+        .main-card h2 { margin: 0 0 15px 0; font-weight: 800; font-size: 1.6rem; }
+        .main-card p { color: var(--text-light); margin: 0; font-size: 1rem; line-height: 1.5; }
 
-        /* --- 阅读板块 --- */
-        .read-box { background: var(--white); padding: 40px; border-radius: 35px; border: 1px solid var(--border); box-shadow: var(--shadow); }
-        #read-display { font-size: 1.3rem; line-height: 2.2; color: #334155; white-space: pre-wrap; }
-        .read-word { cursor: pointer; border-radius: 6px; padding: 0 4px; border-bottom: 2px solid transparent; }
-        .read-word:hover { background: var(--primary-light); color: var(--primary); border-bottom-color: var(--primary); }
+        /* --- 阅读板块组件 --- */
+        .read-container { background: var(--white); padding: 40px; border-radius: 30px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        #read-display { font-size: 1.25rem; line-height: 2.2; color: #334155; padding: 20px; min-height: 300px; }
+        .read-word { cursor: pointer; border-radius: 4px; padding: 0 4px; border-bottom: 2px solid transparent; }
+        .read-word:hover { background: #eef2ff; color: var(--primary); border-bottom-color: var(--primary); }
 
-        /* --- 词库列表 --- */
+        /* --- 词库列表组件 --- */
+        .vocab-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .vocab-header h1 { font-size: 2.2rem; font-weight: 900; margin: 0; }
         .word-item { 
-            background: var(--white); padding: 20px 30px; border-radius: 25px; border: 1px solid var(--border); 
-            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+            background: var(--white); padding: 25px 30px; border-radius: 20px; border: 1px solid var(--border); 
+            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start;
         }
-        .word-info h3 { margin: 0; font-size: 1.4rem; color: var(--primary); }
-        .word-info p { margin: 5px 0 0; color: var(--text-light); }
+        .word-en-def { color: var(--text-light); font-size: 0.95rem; background: var(--bg); padding: 12px 15px; border-radius: 12px; margin-top: 10px; line-height: 1.5; }
+        .group-header { margin: 30px 0 15px 0; padding-left: 15px; border-left: 5px solid var(--primary); font-size: 1.4rem; font-weight: 900; color: var(--text); }
 
-        /* --- 游戏舞台专属 --- */
-        .game-stage { background: var(--white); border-radius: 40px; padding: 40px; border: 2px solid var(--border); min-height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        
-        /* 1. 连连看 */
+        /* --- 游戏组件 --- */
+        .game-stage { background: var(--white); border-radius: 30px; padding: 40px; border: 2px solid var(--border); min-height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .match-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; }
-        .match-card { background: var(--white); border: 2px solid var(--border); border-radius: 20px; padding: 25px 15px; text-align: center; cursor: pointer; font-weight: 700; font-size: 1.1rem; }
-        .match-card.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); transform: scale(1.05); }
-        .match-card.matched { opacity: 0; pointer-events: none; }
-
-        /* 2. 打地鼠 */
-        .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 600px; }
-        .hole { background: #cbd5e1; height: 120px; border-radius: 30px; position: relative; overflow: hidden; border: 5px solid #94a3b8; }
-        .mole { position: absolute; bottom: -100%; width: 100%; height: 100%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; font-size: 1.2rem; }
-        .mole.up { bottom: 0; }
-
-        /* 3. 闪卡 3D */
-        .flash-card { perspective: 1000px; width: 320px; height: 450px; cursor: pointer; }
-        .flash-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-        .flash-card.flipped .flash-inner { transform: rotateY(180deg); }
-        .flash-side { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 35px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; box-shadow: var(--shadow); border: 2px solid var(--primary); }
-        .flash-front { background: white; font-size: 2.5rem; font-weight: 900; }
-        .flash-back { background: var(--primary); color: white; transform: rotateY(180deg); font-size: 1.5rem; text-align: center; }
-
-        /* --- 交互组件 --- */
-        .btn { background: var(--primary); color: white; padding: 16px 32px; border: none; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 1rem; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); filter: brightness(1.1); }
+        .match-card { background: var(--white); border: 2px solid var(--border); border-radius: 15px; padding: 20px; text-align: center; cursor: pointer; font-weight: 700; font-size: 1.1rem; }
+        .match-card.selected { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+        
+        /* 通用按钮及表单 */
+        .btn { background: var(--primary); color: white; padding: 14px 28px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+        .btn:hover { transform: scale(1.03); filter: brightness(1.1); }
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        input, textarea { width: 100%; border: 1px solid var(--border); border-radius: 20px; padding: 20px; font-family: inherit; font-size: 1.1rem; outline: none; resize: none; margin-bottom: 15px; box-sizing: border-box; }
         
-        textarea { width: 100%; height: 250px; border: 1px solid var(--border); border-radius: 25px; padding: 25px; font-family: inherit; font-size: 1.1rem; outline: none; background: #fcfcfc; }
-        
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .modal { background: var(--white); padding: 45px; border-radius: 40px; width: 100%; max-width: 500px; position: relative; }
+        /* 弹窗及动画 */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 3000; display: none; align-items: center; justify-content: center; }
+        .modal { background: var(--white); padding: 40px; border-radius: 30px; width: 90%; max-width: 500px; box-shadow: var(--shadow); }
+        #api-loading { position: fixed; inset: 0; background: rgba(255,255,255,0.85); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; color: var(--primary); font-size: 1.2rem; backdrop-filter: blur(4px); }
     </style>
 </head>
 <body>
+
+<div id="api-loading">🤖 AI 正在深度解析单词并抓取发音... 请稍候</div>
 
 <nav>
     <div class="logo" onclick="showPage('home')">EnglishHub Pro 🚀</div>
     <div class="nav-links">
         <div class="nav-item active" id="nav-home" onclick="showPage('home')">首页</div>
-        <div class="nav-item" id="nav-read" onclick="showPage('read')">阅读分析</div>
-        <div class="nav-item" id="nav-vocab" onclick="showPage('vocab-main')">词库中心</div>
-        <div class="nav-item" id="nav-games" onclick="showPage('games')">挑战游戏</div>
+        <div class="nav-item" id="nav-read" onclick="showPage('read-main')">阅读</div>
+        <div class="nav-item" id="nav-vocab" onclick="showPage('vocab-main')">词库</div>
+        <div class="nav-item" id="nav-games" onclick="showPage('games')">游戏</div>
     </div>
 </nav>
 
 <div class="container">
     
     <div id="p-home" class="view">
-        <h1 style="text-align: center; font-size: 3rem; font-weight: 900; margin-bottom: 10px;">Welcome Back</h1>
-        <p style="text-align: center; color: var(--text-light); margin-bottom: 50px;">今天你想如何提升你的英语？</p>
+        <h1 class="hero-title" style="text-align: center;">Choose Your Journey</h1>
         <div class="hub-grid">
-            <div class="main-card" onclick="showPage('read')">
+            <div class="main-card" onclick="showPage('read-main')">
                 <span class="card-icon">📖</span>
-                <h2>阅读助手</h2>
-                <p>沉浸式阅读，点击即刻识词</p>
+                <h2>阅读中心</h2>
+                <p>智能阅读器 & 个人图书馆</p>
             </div>
             <div class="main-card" onclick="showPage('vocab-main')">
-                <span class="card-icon">🗂️</span>
+                <span class="card-icon">📚</span>
                 <h2>词库管理</h2>
-                <p>生词本与系统词书双模切换</p>
+                <p>掌握你的多层级词汇系统</p>
             </div>
             <div class="main-card" onclick="showPage('games')">
                 <span class="card-icon">🎮</span>
-                <h2>挑战中心</h2>
-                <p>5款基于真实词库的热门游戏</p>
+                <h2>单词游戏</h2>
+                <p>在玩乐中巩固记忆</p>
             </div>
         </div>
     </div>
 
-    <div id="p-read" class="view hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <h1>智能阅读分析</h1>
-            <button class="btn btn-outline" onclick="resetRead()">重新导入</button>
+    <div id="p-read-main" class="view hidden">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 40px;">阅读中心</h1>
+        <div class="hub-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="main-card" onclick="showPage('read-smart')">
+                <span class="card-icon">✍️</span>
+                <h2>智能阅读器</h2>
+                <p>粘贴文字，享受沉浸式取词体验</p>
+            </div>
+            <div class="main-card" onclick="showPage('read-library')">
+                <span class="card-icon">🏛️</span>
+                <h2>个人图书馆</h2>
+                <p>管理并调阅你的所有文献素材</p>
+            </div>
         </div>
-        <div class="read-box">
+    </div>
+
+    <div id="p-read-smart" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div>
+                <div class="back-link" onclick="showPage('read-main')">← 返回阅读中心</div>
+                <h1 style="margin:0;">智能阅读器</h1>
+            </div>
+            <button class="btn btn-outline" onclick="resetReader()">重新导入</button>
+        </div>
+        <div class="read-container">
             <div id="read-input-view">
-                <textarea id="read-raw-text" placeholder="在此粘贴你的英文文章内容..."></textarea>
-                <button class="btn" style="width:100%; margin-top:20px;" onclick="startSmartRead()">开始智能分析</button>
+                <textarea id="read-in" placeholder="在此粘贴你的英文文章内容..." style="height:250px; border:none; border-bottom:1px solid var(--border); border-radius:0;"></textarea>
+                <button class="btn" style="width:100%; margin-top:20px;" onclick="processRead()">生成沉浸式阅读</button>
             </div>
             <div id="read-display" class="hidden"></div>
         </div>
     </div>
 
+    <div id="p-read-library" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div>
+                <div class="back-link" onclick="showPage('read-main')">← 返回阅读中心</div>
+                <h1 style="margin:0;">个人图书馆</h1>
+            </div>
+            <button class="btn" onclick="openModal('modal-add-article')">+ 收藏新文章</button>
+        </div>
+        <div class="hub-grid" id="ui-library-list"></div>
+    </div>
+
     <div id="p-vocab-main" class="view hidden">
-        <h1>词库管理中心</h1>
-        <div class="hub-grid">
-            <div class="main-card" onclick="showPage('vocab-notebook')">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 40px;">词库管理中心</h1>
+        <div class="hub-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="main-card" onclick="showPage('vocab-nb')">
                 <span class="card-icon">🧡</span>
-                <h2>我的生词本</h2>
-                <p>阅读中记录的生词，批量导入解析</p>
+                <h2>生词本</h2>
+                <p>批量添加，AI自动解析发音</p>
             </div>
-            <div class="main-card" onclick="showPage('vocab-system')">
+            <div class="main-card" onclick="showPage('vocab-bs')">
                 <span class="card-icon">📘</span>
-                <h2>系统单词本</h2>
-                <p>书 - 册 - 单元 分级管理系统</p>
+                <h2>单词本</h2>
+                <p>书-册-单元系统管理</p>
             </div>
         </div>
     </div>
 
-    <div id="p-vocab-notebook" class="view hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-            <div onclick="showPage('vocab-main')" style="cursor:pointer; color:var(--primary); font-weight:700;">← 返回中心</div>
-            <h1>我的生词本</h1>
-            <button class="btn" onclick="openModal('modal-add')">批量导入</button>
+    <div id="p-vocab-nb" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div>
+                <div class="back-link" onclick="showPage('vocab-main')">← 返回词库中心</div>
+                <h1 style="margin:0;">我的生词本</h1>
+            </div>
+            <button class="btn" onclick="openModal('modal-add-nb')">+ 批量导入新词</button>
         </div>
-        <div id="nb-list"></div>
+        <div id="ui-nb-list"></div>
     </div>
 
-    <div id="p-vocab-system" class="view hidden">
-        <div onclick="showPage('vocab-main')" style="cursor:pointer; color:var(--primary); font-weight:700; margin-bottom:20px;">← 返回中心</div>
-        <h1>系统单词本</h1>
-        <div class="hub-grid" id="sys-book-grid">
-            <div class="main-card" onclick="alert('进入 第一册...')"><h3>第一册 (Book 1)</h3><p>共 12 个单元</p></div>
-            <div class="main-card" onclick="alert('进入 第二册...')"><h3>第二册 (Book 2)</h3><p>共 10 个单元</p></div>
+    <div id="p-vocab-bs" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div>
+                <div class="back-link" onclick="showPage('vocab-main')">← 返回词库中心</div>
+                <h1 style="margin:0;">系统单词本</h1>
+            </div>
+            <button class="btn" onclick="openModal('modal-add-book')">+ 新建词书</button>
         </div>
+        <div class="hub-grid" id="ui-book-grid"></div>
+    </div>
+
+    <div id="p-book-detail" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div>
+                <div class="back-link" onclick="showPage('vocab-bs')">← 返回系统词书</div>
+                <h1 id="detail-title" style="margin:0; color:var(--primary);">词书详情</h1>
+            </div>
+            <button class="btn" onclick="openModal('modal-add-unit-words')">+ 导入单元单词</button>
+        </div>
+        <div id="ui-book-words"></div>
     </div>
 
     <div id="p-games" class="view hidden">
-        <h1>挑战广场</h1>
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 40px;">单词游戏中心</h1>
         <div class="hub-grid">
-            <div class="main-card" onclick="launchGame('match')"><span class="card-icon">🧩</span><h2>中英连连看</h2></div>
-            <div class="main-card" onclick="launchGame('whack')"><span class="card-icon">🔨</span><h2>单词打地鼠</h2></div>
-            <div class="main-card" onclick="launchGame('flash')"><span class="card-icon">🃏</span><h2>3D 闪卡复习</h2></div>
-            <div class="main-card" onclick="launchGame('chain')"><span class="card-icon">🔗</span><h2>单词接龙</h2></div>
-            <div class="main-card" onclick="launchGame('spell')"><span class="card-icon">✍️</span><h2>听音拼写</h2></div>
+            <div class="main-card" onclick="launchGame('match')"><span class="card-icon">🧩</span><h2>连连看</h2><p>中英双语配对</p></div>
         </div>
     </div>
 
     <div id="p-stage" class="view hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; width:100%;">
-            <h2 id="g-title">Game Title</h2>
-            <div id="g-score" style="font-size:1.8rem; font-weight:900; color:var(--accent);">Score: 0</div>
-            <button class="btn" onclick="showPage('games')">退出 Quit</button>
+        <div class="vocab-header">
+            <h2 id="g-title" style="margin:0; font-size: 2rem;">Game Title</h2>
+            <div id="g-score" style="font-weight:900; color:var(--accent); font-size:1.5rem;">Score: 0</div>
+            <button class="btn btn-outline" onclick="showPage('games')">退出游戏</button>
         </div>
         <div id="g-content" class="game-stage"></div>
     </div>
 
 </div>
 
-<div class="modal-overlay" id="modal-add">
+<div class="modal-overlay" id="modal-add-nb">
     <div class="modal">
-        <h2>批量导入新词</h2>
-        <textarea id="batch-input" style="height:150px;" placeholder="每行一个单词..."></textarea>
-        <button class="btn" style="width:100%; margin-top:20px;" onclick="processBatchAdd()">确认解析并添加</button>
+        <h2 style="margin-top:0;">批量添加至生词本</h2>
+        <textarea id="in-nb-batch" placeholder="每行一个单词，系统会自动连接 API 获取发音和释义..." style="height:150px; border-radius:15px;"></textarea>
+        <div style="display:flex; gap:15px; margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button>
+            <button class="btn" style="flex:1;" onclick="processBatchWords('nb')">开始解析并添加</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-book">
+    <div class="modal">
+        <h2 style="margin-top:0;">新建系统词书</h2>
+        <input type="text" id="in-b-name" placeholder="书名 (例如：新概念英语)">
+        <input type="text" id="in-b-vol" placeholder="册数 (例如：第一册)">
+        <div style="display:flex; gap:15px; margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button>
+            <button class="btn" style="flex:1;" onclick="saveBook()">确认创建</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-unit-words">
+    <div class="modal">
+        <h2 style="margin-top:0;">导入单元单词</h2>
+        <input type="text" id="in-u-name" placeholder="单元名称 (例如：Unit 1)">
+        <textarea id="in-u-batch" placeholder="每行一个单词..." style="height:120px; border-radius:15px;"></textarea>
+        <div style="display:flex; gap:15px; margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button>
+            <button class="btn" style="flex:1;" onclick="processBatchWords('bs')">解析并归档</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-article">
+    <div class="modal">
+        <h2 style="margin-top:0;">收藏新文章</h2>
+        <input type="text" id="in-art-title" placeholder="文章标题 (例如：Steve Jobs Speech)">
+        <textarea id="in-art-content" placeholder="粘贴完整的文章正文内容..." style="height:150px;"></textarea>
+        <div style="display:flex; gap:15px; margin-top:10px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button>
+            <button class="btn" style="flex:1;" onclick="saveArticle()">保存至图书馆</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- 核心数据状态 ---
-    let notebook = JSON.parse(localStorage.getItem('eh_notebook')) || [
-        {word: 'Perspective', cn: '观点，透视', id: 1},
-        {word: 'Magnificent', cn: '宏伟的', id: 2},
-        {word: 'Efficient', cn: '高效的', id: 3},
-        {word: 'Challenge', cn: '挑战', id: 4}
+    // --- 核心数据初始化 ---
+    let notebook = JSON.parse(localStorage.getItem('eh_v12_nb')) || [];
+    let library = JSON.parse(localStorage.getItem('eh_v12_lib')) || [
+        { id: 1, title: 'Steve Jobs Stanford Speech', content: 'I am honored to be with you today at your commencement from one of the finest universities in the world.', date: new Date().toLocaleDateString() }
     ];
+    let bookshelf = JSON.parse(localStorage.getItem('eh_v12_bs')) || [];
+    let curBookIdx = -1; // 记录当前打开的词书索引
     let score = 0;
-    let gameTimer;
 
-    // --- 路由与导航 ---
+    // --- 页面路由系统 ---
     function showPage(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         document.getElementById('p-' + id).classList.remove('hidden');
         
-        const navId = id.includes('vocab') ? 'vocab' : id;
-        if(document.getElementById('nav-' + navId)) document.getElementById('nav-' + navId).classList.add('active');
+        const navPrefix = id.split('-')[0];
+        const navEl = document.getElementById('nav-' + navPrefix);
+        if(navEl) navEl.classList.add('active');
         
-        if(id === 'vocab-notebook') renderNotebook();
-        clearInterval(gameTimer);
+        if(id === 'vocab-nb') renderNB();
+        if(id === 'vocab-bs') renderBS();
+        if(id === 'read-library') renderLibrary();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- 阅读助手逻辑 ---
-    function startSmartRead() {
-        const text = document.getElementById('read-raw-text').value;
-        if(!text) return;
-        document.getElementById('read-input-view').classList.add('hidden');
-        const display = document.getElementById('read-display');
-        display.classList.remove('hidden');
-        
-        display.innerHTML = text.split(/\s+/).map(word => {
-            const clean = word.replace(/[^a-zA-Z]/g, '');
-            return `<span class="read-word" onclick="handleWordClick('${clean}')">${word} </span>`;
-        }).join('');
-    }
-
-    function resetRead() {
-        document.getElementById('read-input-view').classList.remove('hidden');
-        document.getElementById('read-display').classList.add('hidden');
-    }
-
-    function handleWordClick(word) {
-        speak(word);
-        if(confirm(`识别到单词 "${word}"，是否将其存入生词本？`)) {
-            if(!notebook.find(w => w.word.toLowerCase() === word.toLowerCase())) {
-                notebook.unshift({word: word, cn: '来自阅读识别', id: Date.now()});
-                saveData();
-            }
+    // ==================== 智能阅读器 & 个人图书馆 ====================
+    function renderLibrary() {
+        const ui = document.getElementById('ui-library-list');
+        if(!library.length) {
+            ui.innerHTML = `<p style="text-align:center; color:var(--text-light); grid-column: 1 / -1; padding: 40px;">图书馆空空如也，快去收藏经典的英文文章吧！</p>`;
+            return;
         }
-    }
-
-    // --- 词库管理逻辑 ---
-    function renderNotebook() {
-        const list = document.getElementById('nb-list');
-        list.innerHTML = notebook.map((w, i) => `
-            <div class="word-item">
-                <div class="word-info">
-                    <h3>${w.word}</h3>
-                    <p>${w.cn}</p>
+        ui.innerHTML = library.map((art, i) => `
+            <div class="main-card" style="padding: 30px; text-align: left; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h3 style="margin: 0 0 10px 0; font-size: 1.4rem; color: var(--primary);">${art.title}</h3>
+                    <p style="color: var(--text-light); font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${art.content}</p>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn btn-outline" style="padding:10px" onclick="speak('${w.word}')">🔊</button>
-                    <button class="btn" style="background:var(--accent); padding:10px" onclick="deleteWord(${i})">🗑️</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 25px;">
+                    <span style="font-size: 0.85rem; color: #94a3b8; font-weight:600;">${art.date}</span>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-outline" style="padding: 8px 15px; font-size: 0.9rem;" onclick="readLibraryArticle(${i})">📖 阅读</button>
+                        <button class="btn" style="background: var(--accent); padding: 8px 15px; font-size: 0.9rem;" onclick="deleteArticle(${i})">删除</button>
+                    </div>
                 </div>
             </div>
         `).join('');
     }
 
-    function processBatchAdd() {
-        const input = document.getElementById('batch-input').value;
-        const words = input.split('\n').map(w => w.trim()).filter(w => w);
-        words.forEach(w => {
-            notebook.unshift({word: w, cn: '待解析...', id: Date.now() + Math.random()});
-        });
-        saveData();
-        closeModals();
-        renderNotebook();
+    function saveArticle() {
+        const title = document.getElementById('in-art-title').value.trim();
+        const content = document.getElementById('in-art-content').value.trim();
+        if(!title || !content) { alert("标题和内容不能为空！"); return; }
+        library.unshift({ id: Date.now(), title, content, date: new Date().toLocaleDateString() });
+        saveData(); closeModals(); renderLibrary();
+        document.getElementById('in-art-title').value = ''; document.getElementById('in-art-content').value = '';
     }
 
-    // --- 5款游戏引擎 ---
+    function deleteArticle(index) {
+        if(confirm('确定要删除这篇文章吗？')) {
+            library.splice(index, 1); saveData(); renderLibrary();
+        }
+    }
+
+    function readLibraryArticle(index) {
+        document.getElementById('read-in').value = library[index].content;
+        showPage('read-smart'); processRead();
+    }
+
+    function processRead() {
+        const text = document.getElementById('read-in').value;
+        if(!text) return;
+        document.getElementById('read-input-view').classList.add('hidden');
+        const display = document.getElementById('read-display');
+        display.classList.remove('hidden');
+        display.innerHTML = text.split(/\s+/).map(word => {
+            const clean = word.replace(/[^a-zA-Z]/g, '');
+            return `<span class="read-word" onclick="quickLook('${clean}')">${word} </span>`;
+        }).join('');
+    }
+
+    function resetReader() {
+        document.getElementById('read-input-view').classList.remove('hidden');
+        document.getElementById('read-display').classList.add('hidden');
+        document.getElementById('read-in').value = '';
+    }
+
+    function quickLook(word) {
+        speak(word);
+        if(confirm(`识别到单词 "${word}"\n是否将其存入生词本？`)) {
+            notebook.unshift({word: word, cn: '来自阅读识别', phonetic: '', en: '', id: Date.now()});
+            saveData(); alert("✅ 已成功加入生词本！");
+        }
+    }
+
+    // ==================== 词库管理中心 (API 解析 & 双模) ====================
+    async function fetchInfo(word) {
+        try {
+            const [d, t] = await Promise.all([
+                fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`).then(r => r.json()),
+                fetch(`https://api.mymemory.translated.net/get?q=${word}&langpair=en|zh-CN`).then(r => r.json())
+            ]);
+            const isOk = Array.isArray(d);
+            return {
+                word, 
+                phonetic: isOk ? (d[0].phonetic || '') : '',
+                cn: t.responseData.translatedText || '暂无翻译',
+                en: isOk ? d[0].meanings[0].definitions[0].definition : '',
+                id: Date.now() + Math.random()
+            };
+        } catch(e) { return { word, cn: '解析失败', en: '', phonetic: '', id: Date.now() }; }
+    }
+
+    // 处理批量解析 (支持存入生词本 nb 或系统单词本 bs)
+    async function processBatchWords(type) {
+        const inputId = type === 'nb' ? 'in-nb-batch' : 'in-u-batch';
+        const rawInput = document.getElementById(inputId).value;
+        const words = rawInput.split('\n').map(w => w.trim()).filter(w => w);
+        const unitName = type === 'bs' ? (document.getElementById('in-u-name').value.trim() || "默认单元") : "";
+
+        if(!words.length) return;
+        closeModals();
+        document.getElementById('api-loading').style.display = 'flex';
+
+        for(let w of words) {
+            const info = await fetchInfo(w);
+            if(type === 'nb') {
+                notebook.unshift(info);
+            } else {
+                info.unit = unitName;
+                bookshelf[curBookIdx].words.push(info);
+            }
+        }
+
+        saveData();
+        document.getElementById('api-loading').style.display = 'none';
+        document.getElementById(inputId).value = "";
+        type === 'nb' ? renderNB() : renderBookWords();
+    }
+
+    // --- 渲染：生词本 ---
+    function renderNB() {
+        const ui = document.getElementById('ui-nb-list');
+        if(!notebook.length) {
+            ui.innerHTML = `<p style="text-align:center; color:var(--text-light); padding:40px;">生词本为空，请点击右上角批量导入。</p>`;
+            return;
+        }
+        ui.innerHTML = notebook.map((w, i) => `
+            <div class="word-item">
+                <div style="flex:1">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:1.6rem; font-weight:900; color:var(--primary);">${w.word}</span>
+                        <span style="color:var(--text-light); font-size:1.1rem;">${w.phonetic || ''}</span>
+                    </div>
+                    <div style="font-weight:700; font-size:1.15rem; margin:8px 0; color:var(--text);">${w.cn}</div>
+                    ${w.en ? `<div class="word-en-def">${w.en}</div>` : ''}
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-left:20px;">
+                    <button class="btn btn-outline" style="padding:10px;" onclick="speak('${w.word}')">🔊</button>
+                    <button class="btn" style="background:var(--accent); padding:10px;" onclick="notebook.splice(${i},1);saveData();renderNB();">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // --- 渲染：单词本 (书架与内页) ---
+    function saveBook() {
+        const name = document.getElementById('in-b-name').value.trim();
+        const vol = document.getElementById('in-b-vol').value.trim();
+        if(!name) { alert("书名不能为空！"); return; }
+        bookshelf.unshift({ name, vol, words: [] });
+        saveData(); closeModals(); renderBS();
+        document.getElementById('in-b-name').value = ''; document.getElementById('in-b-vol').value = '';
+    }
+
+    function renderBS() {
+        const ui = document.getElementById('ui-book-grid');
+        if(!bookshelf.length) {
+            ui.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:var(--text-light); padding:40px;">尚未创建词书，点击右上角新建。</p>`;
+            return;
+        }
+        ui.innerHTML = bookshelf.map((b, i) => `
+            <div class="main-card" onclick="openBook(${i})" style="padding: 40px 20px;">
+                <span class="card-icon">📘</span>
+                <h2 style="font-size:1.5rem;">${b.name}</h2>
+                <p style="margin-bottom:15px;">${b.vol ? b.vol + ' | ' : ''}已收录 ${b.words.length} 词</p>
+                <button class="btn btn-outline" style="padding:8px 16px; font-size:0.9rem;" onclick="event.stopPropagation(); if(confirm('删除此书？')) { bookshelf.splice(${i},1); saveData(); renderBS(); }">删除词书</button>
+            </div>
+        `).join('');
+    }
+
+    function openBook(index) {
+        curBookIdx = index;
+        showPage('book-detail');
+        document.getElementById('detail-title').innerText = `${bookshelf[index].name} ${bookshelf[index].vol}`;
+        renderBookWords();
+    }
+
+    function renderBookWords() {
+        const ui = document.getElementById('ui-book-words');
+        const words = bookshelf[curBookIdx].words;
+        if(!words.length) {
+            ui.innerHTML = `<p style="text-align:center; color:var(--text-light); padding:40px;">该词书为空，请点击右上角导入单元单词。</p>`;
+            return;
+        }
+
+        let html = '';
+        let currentUnit = '';
+        words.forEach((w, i) => {
+            if(w.unit !== currentUnit) {
+                currentUnit = w.unit;
+                html += `<div class="group-header">${currentUnit}</div>`;
+            }
+            html += `
+            <div class="word-item">
+                <div style="flex:1">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:1.5rem; font-weight:900; color:var(--text);">${w.word}</span>
+                        <span style="color:var(--text-light);">${w.phonetic || ''}</span>
+                    </div>
+                    <div style="font-weight:700; margin:5px 0;">${w.cn}</div>
+                    ${w.en ? `<div class="word-en-def">${w.en}</div>` : ''}
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-left:20px;">
+                    <button class="btn btn-outline" style="padding:10px;" onclick="speak('${w.word}')">🔊</button>
+                    <button class="btn" style="background:var(--accent); padding:10px;" onclick="bookshelf[${curBookIdx}].words.splice(${i},1); saveData(); renderBookWords();">🗑️</button>
+                </div>
+            </div>`;
+        });
+        ui.innerHTML = html;
+    }
+
+    // ==================== 简易游戏引擎 ====================
     function launchGame(type) {
-        if(notebook.length < 4) { alert("词库单词不足！请先至少添加4个单词。"); return; }
+        // 游戏综合读取生词本和单词本里的词汇
+        let allWords = [...notebook];
+        bookshelf.forEach(b => allWords.push(...b.words));
+
+        if(allWords.length < 4) { alert("词库单词总数不足！请先添加至少 4 个单词。"); return; }
         showPage('stage');
         score = 0; updateScore();
         const stage = document.getElementById('g-content');
-        const title = document.getElementById('g-title');
-
+        
         if(type === 'match') {
-            title.innerText = "🧩 中英连连看";
+            document.getElementById('g-title').innerText = "🧩 中英连连看";
             let cards = [];
-            notebook.slice(0, 4).forEach(w => {
+            allWords.sort(() => 0.5 - Math.random()).slice(0, 4).forEach(w => {
                 cards.push({id: w.id, val: w.word, type: 'en'}, {id: w.id, val: w.cn, type: 'cn'});
             });
             cards.sort(() => 0.5 - Math.random());
             stage.innerHTML = `<div class="match-grid">${cards.map(c => `<div class="match-card" data-id="${c.id}" data-type="${c.type}" onclick="handleMatch(this)">${c.val}</div>`).join('')}</div>`;
-        } 
-        else if(type === 'whack') {
-            title.innerText = "🔨 单词打地鼠";
-            stage.innerHTML = `<div class="mole-grid">${Array(6).fill('<div class="hole"><div class="mole"></div></div>').join('')}</div>`;
-            const moles = document.querySelectorAll('.mole');
-            gameTimer = setInterval(() => {
-                const m = moles[Math.floor(Math.random()*6)];
-                const w = notebook[Math.floor(Math.random()*notebook.length)];
-                m.innerText = w.word; m.classList.add('up');
-                m.onclick = () => { score+=10; updateScore(); m.classList.remove('up'); speak(w.word); };
-                setTimeout(() => m.classList.remove('up'), 1500);
-            }, 2000);
-        }
-        else if(type === 'flash') {
-            title.innerText = "🃏 闪卡记忆";
-            let cur = 0;
-            const drawFlash = () => {
-                const w = notebook[cur];
-                stage.innerHTML = `
-                    <div class="flash-card" onclick="this.classList.toggle('flipped')">
-                        <div class="flash-inner">
-                            <div class="flash-side flash-front">${w.word}</div>
-                            <div class="flash-side flash-back"><h3>${w.cn}</h3><p>点击翻回正面</p></div>
-                        </div>
-                    </div>
-                    <button class="btn" style="margin-top:30px;" onclick="cur=(cur+1)%notebook.length; drawFlash()">下一个 Next</button>
-                `;
-            };
-            drawFlash();
-        }
-        else if(type === 'chain') {
-            title.innerText = "🔗 单词接龙";
-            let last = "apple";
-            stage.innerHTML = `
-                <div style="text-align:center;">
-                    <h3 style="font-size:2rem;">上个单词: <span style="color:var(--primary)">${last}</span></h3>
-                    <p>请输入以 "${last.slice(-1).toUpperCase()}" 开头的单词</p>
-                    <input id="chain-in" style="font-size:1.5rem; text-align:center; padding:15px; border-radius:15px; border:1px solid var(--border); width:80%;">
-                    <button class="btn" style="display:block; margin:20px auto;" onclick="checkChain()">提交 Submit</button>
-                </div>
-            `;
-            window.checkChain = () => {
-                const input = document.getElementById('chain-in').value.toLowerCase().trim();
-                if(input.startsWith(last.slice(-1))) {
-                    last = input; score += 5; updateScore();
-                    launchGame('chain'); // 重新渲染状态，此处简单演示
-                } else { alert("首尾不匹配！"); }
-            };
-        }
-        else if(type === 'spell') {
-            title.innerText = "✍️ 听音拼写";
-            const target = notebook[Math.floor(Math.random()*notebook.length)];
-            stage.innerHTML = `
-                <div style="text-align:center;">
-                    <button class="btn btn-outline" onclick="speak('${target.word}')">🔊 播放读音</button>
-                    <input id="spell-in" placeholder="在此拼写单词..." style="display:block; margin:30px auto; width:80%; font-size:1.5rem; text-align:center;">
-                    <button class="btn" onclick="checkSpell('${target.word}')">检查 Check</button>
-                </div>
-            `;
-            window.checkSpell = (correct) => {
-                if(document.getElementById('spell-in').value.trim().toLowerCase() === correct.toLowerCase()) {
-                    alert("拼写正确！"); score += 20; updateScore(); launchGame('spell');
-                } else { alert("再试一次！"); }
-            };
         }
     }
 
-    // 连连看逻辑
-    let selected = [];
+    let selectedCards = [];
     function handleMatch(el) {
-        if(el.classList.contains('matched') || selected.includes(el)) return;
+        if(el.style.visibility === 'hidden' || selectedCards.includes(el)) return;
         el.classList.add('selected');
-        selected.push(el);
-        if(selected.length === 2) {
-            const [a, b] = selected;
+        selectedCards.push(el);
+        if(selectedCards.length === 2) {
+            const [a, b] = selectedCards;
             if(a.dataset.id === b.dataset.id && a.dataset.type !== b.dataset.type) {
-                a.classList.add('matched'); b.classList.add('matched');
+                a.style.visibility = 'hidden'; b.style.visibility = 'hidden'; 
                 score += 15; updateScore();
                 speak(a.dataset.type === 'en' ? a.innerText : b.innerText);
             } else {
                 setTimeout(() => { a.classList.remove('selected'); b.classList.remove('selected'); }, 500);
             }
-            selected = [];
+            selectedCards = [];
         }
     }
 
-    // --- 工具函数 ---
-    function speak(text) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
+    // --- 核心工具 ---
+    function speak(t) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(t)); }
+    function saveData() { 
+        localStorage.setItem('eh_v12_nb', JSON.stringify(notebook)); 
+        localStorage.setItem('eh_v12_lib', JSON.stringify(library));
+        localStorage.setItem('eh_v12_bs', JSON.stringify(bookshelf)); 
+    }
     function updateScore() { document.getElementById('g-score').innerText = "Score: " + score; }
-    function saveData() { localStorage.setItem('eh_notebook', JSON.stringify(notebook)); }
-    function deleteWord(i) { notebook.splice(i, 1); saveData(); renderNotebook(); }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
-    
-    // 初始化
+
+    // 初始化启动
     showPage('home');
 </script>
 </body>
