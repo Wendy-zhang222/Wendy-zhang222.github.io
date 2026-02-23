@@ -1,232 +1,417 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnglishHub - Advanced Control</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>EnglishHub Pro - Ultimate Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #6366f1; --secondary: #a855f7; --success: #22c55e; --danger: #ef4444; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background-color: var(--bg); background-image: radial-gradient(var(--primary) 0.5px, transparent 0.5px); background-size: 30px 30px; color: #1e293b; }
-        nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
-        .logo { font-weight: 900; font-size: 1.5rem; color: var(--primary); }
-        .nav-btns { display: flex; gap: 10px; align-items: center; }
-        .btn-review { background: #fff1f2; color: #be123c; border: 2px solid #fda4af; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px 20px 60px; }
-        .section-title { font-size: 1.8rem; font-weight: 800; margin: 40px 0 20px; color: #1e293b; display: flex; align-items: center; gap: 12px; }
-        .section-title i { background: var(--primary); color: white; padding: 8px; border-radius: 12px; font-style: normal; }
-        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .book-card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); border: 2px solid #e2e8f0; position: relative; }
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
-        .game-card { background: white; border-radius: 24px; padding: 25px; text-align: center; border: 4px solid transparent; box-shadow: 0 10px 15px rgba(0,0,0,0.05); transition: 0.3s; }
-        .game-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1000; align-items: center; justify-content: center; }
-        .modal { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 30px; text-align: center; position: relative; max-height: 85vh; overflow-y: auto; }
-        .close-x { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
-        .btn-play { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-edit { background: #f1f5f9; color: #64748b; border: none; padding: 8px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; margin-top: 10px; width: 100%; font-weight: 600; }
-        .timer-wrap { width: 100%; height: 10px; background: #e2e8f0; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
-        #timer-bar { width: 100%; height: 100%; background: var(--primary); transition: width 0.1s linear; }
-        .q-text { font-size: 2.2rem; font-weight: 900; color: var(--primary); margin-bottom: 20px; }
-        input, textarea, select { width: 95%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; font-family: inherit; }
-        .setting-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: left; }
-        .hidden { display: none; }
+        :root {
+            --primary: #6366f1;
+            --primary-light: #eef2ff;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --accent: #f43f5e;
+            --success: #22c55e;
+            --white: #ffffff;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; overflow-x: hidden; }
+
+        /* --- 导航栏 (Sticky & Glassmorphism) --- */
+        nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .logo { font-weight: 900; font-size: 1.6rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-item { 
+            cursor: pointer; font-weight: 600; color: var(--text-light); 
+            padding: 10px 20px; border-radius: 14px; 
+        }
+        .nav-item:hover, .nav-item.active { color: var(--primary); background: var(--white); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; min-height: calc(100vh - 80px); }
+        .hidden { display: none !important; }
+
+        /* --- 通用卡片样式 (Perfect Layout) --- */
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 20px; }
+        .main-card { 
+            background: var(--white); padding: 50px 30px; border-radius: 35px; border: 1px solid var(--border); 
+            cursor: pointer; text-align: center; position: relative; overflow: hidden;
+        }
+        .main-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 30px 60px -12px rgba(99, 102, 241, 0.12); }
+        .card-icon { font-size: 60px; margin-bottom: 20px; display: block; }
+        .main-card h2 { margin: 10px 0; font-size: 1.5rem; font-weight: 800; }
+        .main-card p { color: var(--text-light); font-size: 1rem; }
+
+        /* --- 阅读板块 --- */
+        .read-box { background: var(--white); padding: 40px; border-radius: 35px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        #read-display { font-size: 1.3rem; line-height: 2.2; color: #334155; white-space: pre-wrap; }
+        .read-word { cursor: pointer; border-radius: 6px; padding: 0 4px; border-bottom: 2px solid transparent; }
+        .read-word:hover { background: var(--primary-light); color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* --- 词库列表 --- */
+        .word-item { 
+            background: var(--white); padding: 20px 30px; border-radius: 25px; border: 1px solid var(--border); 
+            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .word-info h3 { margin: 0; font-size: 1.4rem; color: var(--primary); }
+        .word-info p { margin: 5px 0 0; color: var(--text-light); }
+
+        /* --- 游戏舞台专属 --- */
+        .game-stage { background: var(--white); border-radius: 40px; padding: 40px; border: 2px solid var(--border); min-height: 500px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        
+        /* 1. 连连看 */
+        .match-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; }
+        .match-card { background: var(--white); border: 2px solid var(--border); border-radius: 20px; padding: 25px 15px; text-align: center; cursor: pointer; font-weight: 700; font-size: 1.1rem; }
+        .match-card.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); transform: scale(1.05); }
+        .match-card.matched { opacity: 0; pointer-events: none; }
+
+        /* 2. 打地鼠 */
+        .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 600px; }
+        .hole { background: #cbd5e1; height: 120px; border-radius: 30px; position: relative; overflow: hidden; border: 5px solid #94a3b8; }
+        .mole { position: absolute; bottom: -100%; width: 100%; height: 100%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; font-size: 1.2rem; }
+        .mole.up { bottom: 0; }
+
+        /* 3. 闪卡 3D */
+        .flash-card { perspective: 1000px; width: 320px; height: 450px; cursor: pointer; }
+        .flash-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .flash-card.flipped .flash-inner { transform: rotateY(180deg); }
+        .flash-side { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 35px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; box-shadow: var(--shadow); border: 2px solid var(--primary); }
+        .flash-front { background: white; font-size: 2.5rem; font-weight: 900; }
+        .flash-back { background: var(--primary); color: white; transform: rotateY(180deg); font-size: 1.5rem; text-align: center; }
+
+        /* --- 交互组件 --- */
+        .btn { background: var(--primary); color: white; padding: 16px 32px; border: none; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); filter: brightness(1.1); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        
+        textarea { width: 100%; height: 250px; border: 1px solid var(--border); border-radius: 25px; padding: 25px; font-family: inherit; font-size: 1.1rem; outline: none; background: #fcfcfc; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .modal { background: var(--white); padding: 45px; border-radius: 40px; width: 100%; max-width: 500px; position: relative; }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo">EnglishHub 🚀</div>
-    <div class="nav-btns">
-        <button class="btn-review" onclick="openReviewCenter()">🔴 Mistakes (<span id="mistake-count">0</span>)</button>
-        <div style="background: #eef2ff; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🏆 XP: <span id="global-score">0</span></div>
+    <div class="logo" onclick="showPage('home')">EnglishHub Pro 🚀</div>
+    <div class="nav-links">
+        <div class="nav-item active" id="nav-home" onclick="showPage('home')">首页</div>
+        <div class="nav-item" id="nav-read" onclick="showPage('read')">阅读分析</div>
+        <div class="nav-item" id="nav-vocab" onclick="showPage('vocab-main')">词库中心</div>
+        <div class="nav-item" id="nav-games" onclick="showPage('games')">挑战游戏</div>
     </div>
 </nav>
 
 <div class="container">
-    <div class="section-title"><i>📚</i> My Vocabulary</div>
-    <div class="vocab-grid" id="vocab-books">
-        <div class="book-card" style="border: 2px dashed #cbd5e1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; min-height: 150px;" onclick="openBookEditor()">
-            <span style="font-size: 40px; color: #94a3b8;">+</span>
-            <p style="color: #64748b; font-weight: bold;">Create New Book</p>
+    
+    <div id="p-home" class="view">
+        <h1 style="text-align: center; font-size: 3rem; font-weight: 900; margin-bottom: 10px;">Welcome Back</h1>
+        <p style="text-align: center; color: var(--text-light); margin-bottom: 50px;">今天你想如何提升你的英语？</p>
+        <div class="hub-grid">
+            <div class="main-card" onclick="showPage('read')">
+                <span class="card-icon">📖</span>
+                <h2>阅读助手</h2>
+                <p>沉浸式阅读，点击即刻识词</p>
+            </div>
+            <div class="main-card" onclick="showPage('vocab-main')">
+                <span class="card-icon">🗂️</span>
+                <h2>词库管理</h2>
+                <p>生词本与系统词书双模切换</p>
+            </div>
+            <div class="main-card" onclick="showPage('games')">
+                <span class="card-icon">🎮</span>
+                <h2>挑战中心</h2>
+                <p>5款基于真实词库的热门游戏</p>
+            </div>
         </div>
     </div>
 
-    <div class="section-title"><i>🎮</i> Word Games</div>
-    <div class="game-grid" id="menu"></div>
+    <div id="p-read" class="view hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <h1>智能阅读分析</h1>
+            <button class="btn btn-outline" onclick="resetRead()">重新导入</button>
+        </div>
+        <div class="read-box">
+            <div id="read-input-view">
+                <textarea id="read-raw-text" placeholder="在此粘贴你的英文文章内容..."></textarea>
+                <button class="btn" style="width:100%; margin-top:20px;" onclick="startSmartRead()">开始智能分析</button>
+            </div>
+            <div id="read-display" class="hidden"></div>
+        </div>
+    </div>
+
+    <div id="p-vocab-main" class="view hidden">
+        <h1>词库管理中心</h1>
+        <div class="hub-grid">
+            <div class="main-card" onclick="showPage('vocab-notebook')">
+                <span class="card-icon">🧡</span>
+                <h2>我的生词本</h2>
+                <p>阅读中记录的生词，批量导入解析</p>
+            </div>
+            <div class="main-card" onclick="showPage('vocab-system')">
+                <span class="card-icon">📘</span>
+                <h2>系统单词本</h2>
+                <p>书 - 册 - 单元 分级管理系统</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="p-vocab-notebook" class="view hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <div onclick="showPage('vocab-main')" style="cursor:pointer; color:var(--primary); font-weight:700;">← 返回中心</div>
+            <h1>我的生词本</h1>
+            <button class="btn" onclick="openModal('modal-add')">批量导入</button>
+        </div>
+        <div id="nb-list"></div>
+    </div>
+
+    <div id="p-vocab-system" class="view hidden">
+        <div onclick="showPage('vocab-main')" style="cursor:pointer; color:var(--primary); font-weight:700; margin-bottom:20px;">← 返回中心</div>
+        <h1>系统单词本</h1>
+        <div class="hub-grid" id="sys-book-grid">
+            <div class="main-card" onclick="alert('进入 第一册...')"><h3>第一册 (Book 1)</h3><p>共 12 个单元</p></div>
+            <div class="main-card" onclick="alert('进入 第二册...')"><h3>第二册 (Book 2)</h3><p>共 10 个单元</p></div>
+        </div>
+    </div>
+
+    <div id="p-games" class="view hidden">
+        <h1>挑战广场</h1>
+        <div class="hub-grid">
+            <div class="main-card" onclick="launchGame('match')"><span class="card-icon">🧩</span><h2>中英连连看</h2></div>
+            <div class="main-card" onclick="launchGame('whack')"><span class="card-icon">🔨</span><h2>单词打地鼠</h2></div>
+            <div class="main-card" onclick="launchGame('flash')"><span class="card-icon">🃏</span><h2>3D 闪卡复习</h2></div>
+            <div class="main-card" onclick="launchGame('chain')"><span class="card-icon">🔗</span><h2>单词接龙</h2></div>
+            <div class="main-card" onclick="launchGame('spell')"><span class="card-icon">✍️</span><h2>听音拼写</h2></div>
+        </div>
+    </div>
+
+    <div id="p-stage" class="view hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; width:100%;">
+            <h2 id="g-title">Game Title</h2>
+            <div id="g-score" style="font-size:1.8rem; font-weight:900; color:var(--accent);">Score: 0</div>
+            <button class="btn" onclick="showPage('games')">退出 Quit</button>
+        </div>
+        <div id="g-content" class="game-stage"></div>
+    </div>
+
 </div>
 
-<div id="book-modal" class="overlay"><div class="modal"><div class="close-x" onclick="closeAll()">×</div><h2>Word Book</h2><input type="text" id="book-name" placeholder="Book Name"><textarea id="book-words" placeholder="Apple, Banana, Cat..." style="height: 120px;"></textarea><button class="btn-play" onclick="saveBook()">SAVE BOOK</button></div></div>
-
-<div id="settings-overlay" class="overlay">
+<div class="modal-overlay" id="modal-add">
     <div class="modal">
-        <div class="close-x" onclick="closeAll()">×</div>
-        <h2 id="settings-title">Game Settings</h2>
-        
-        <div class="setting-box">
-            <label>⏱️ Timer (Seconds):</label>
-            <input type="number" id="game-time-input" min="5">
-        </div>
-
-        <div class="setting-box">
-            <label>📖 Word Source:</label>
-            <select id="word-source-select" onchange="toggleSourceUI()">
-                <option value="all">All Vocabulary Books</option>
-                <option value="specific">Specific Book...</option>
-                <option value="custom">Custom (Type words below)</option>
-            </select>
-            
-            <div id="specific-book-ui" class="hidden">
-                <select id="specific-book-picker" style="margin-top:10px;"></select>
-            </div>
-
-            <div id="custom-words-ui" class="hidden">
-                <textarea id="custom-game-words" placeholder="Word1, Word2, Word3..." style="height: 80px; margin-top:10px;"></textarea>
-            </div>
-        </div>
-
-        <button class="btn-play" onclick="saveSettings()">SAVE & CLOSE</button>
+        <h2>批量导入新词</h2>
+        <textarea id="batch-input" style="height:150px;" placeholder="每行一个单词..."></textarea>
+        <button class="btn" style="width:100%; margin-top:20px;" onclick="processBatchAdd()">确认解析并添加</button>
     </div>
 </div>
-
-<div id="game-overlay" class="overlay"><div class="modal"><div class="close-x" onclick="closeAll()">×</div><div id="game-active"><div class="timer-wrap"><div id="timer-bar"></div></div><div id="q-content" class="q-text">---</div><div id="input-ui" class="hidden"><input type="text" id="user-input" autocomplete="off"><button class="btn-play" onclick="checkInput()">SUBMIT</button></div><div id="choice-ui" class="hidden" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div></div><div id="game-over" class="hidden"><h1>🎉 Done!</h1><h2 id="final-xp">+0 XP</h2><button class="btn-play" onclick="closeAll()">BACK</button></div></div></div>
 
 <script>
-    let totalXP = parseInt(localStorage.getItem('xp')) || 0;
-    let mistakeBank = JSON.parse(localStorage.getItem('mistake_bank')) || [];
-    let vocabBooks = JSON.parse(localStorage.getItem('vocab_books')) || [{ name: "Demo", words: ["APPLE", "DOG", "CAT"] }];
-    let gameConfigs = JSON.parse(localStorage.getItem('game_configs')) || {};
-
-    let timer, timeLeft, currentQ, currentType, sessionXP = 0, editingGameId = '';
-
-    const games = [
-        { id: 'scramble', name: 'Word Scramble', icon: '🌪️' },
-        { id: 'emoji', name: 'Emoji Riddle', icon: '🧩' },
-        { id: 'bee', name: 'Spelling Bee', icon: '🐝' },
-        { id: 'balloon', name: 'Balloon Pop', icon: '🎈' },
-        { id: 'animal', name: 'Animal Sounds', icon: '🦁' },
-        { id: 'odd', name: 'Odd One Out', icon: '🔎' },
-        { id: 'color', name: 'Color Splash', icon: '🎨' },
-        { id: 'space', name: 'Space Quest', icon: '🚀' },
-        { id: 'robot', name: 'Robot Fixer', icon: '🤖' },
-        { id: 'nature', name: 'Nature Match', icon: '🌿' }
+    // --- 核心数据状态 ---
+    let notebook = JSON.parse(localStorage.getItem('eh_notebook')) || [
+        {word: 'Perspective', cn: '观点，透视', id: 1},
+        {word: 'Magnificent', cn: '宏伟的', id: 2},
+        {word: 'Efficient', cn: '高效的', id: 3},
+        {word: 'Challenge', cn: '挑战', id: 4}
     ];
+    let score = 0;
+    let gameTimer;
 
-    function init() { renderBooks(); renderMenu(); updateStats(); }
-
-    function renderBooks() {
-        const container = document.getElementById('vocab-books');
-        const addBtn = container.lastElementChild; container.innerHTML = '';
-        vocabBooks.forEach((book, idx) => {
-            container.innerHTML += `<div class="book-card"><h3 style="margin:0;">${book.name}</h3><p>${book.words.length} Words</p><button class="btn-edit" onclick="deleteBook(${idx})">🗑️ Delete</button></div>`;
-        });
-        container.appendChild(addBtn);
-    }
-
-    function openBookEditor() { document.getElementById('book-modal').style.display = 'flex'; }
-    function saveBook() {
-        const name = document.getElementById('book-name').value, words = document.getElementById('book-words').value.split(/[,\n]/).map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
-        if(!name || words.length === 0) return;
-        vocabBooks.push({ name, words }); localStorage.setItem('vocab_books', JSON.stringify(vocabBooks));
-        closeAll(); renderBooks();
-    }
-    function deleteBook(idx) { vocabBooks.splice(idx, 1); localStorage.setItem('vocab_books', JSON.stringify(vocabBooks)); renderBooks(); }
-
-    function renderMenu() {
-        const menu = document.getElementById('menu'); menu.innerHTML = '';
-        games.forEach(g => {
-            menu.innerHTML += `<div class="game-card"><span class="game-icon">${g.icon}</span><h3>${g.name}</h3><button class="btn-play" onclick="startGame('${g.id}')">PLAY</button><button class="btn-edit" onclick="openSettings('${g.id}')">⚙️ SETTINGS</button></div>`;
-        });
-    }
-
-    // --- SETTINGS LOGIC ---
-    function openSettings(id) {
-        editingGameId = id;
-        const config = gameConfigs[id] || { time: 15, source: 'all', customWords: '', specificBook: 0 };
-        document.getElementById('game-time-input').value = config.time;
-        document.getElementById('word-source-select').value = config.source;
-        document.getElementById('custom-game-words').value = config.customWords;
+    // --- 路由与导航 ---
+    function showPage(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('p-' + id).classList.remove('hidden');
         
-        const picker = document.getElementById('specific-book-picker');
-        picker.innerHTML = vocabBooks.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
-        picker.value = config.specificBook || 0;
-
-        toggleSourceUI();
-        document.getElementById('settings-overlay').style.display = 'flex';
-    }
-
-    function toggleSourceUI() {
-        const source = document.getElementById('word-source-select').value;
-        document.getElementById('specific-book-ui').className = (source === 'specific') ? '' : 'hidden';
-        document.getElementById('custom-words-ui').className = (source === 'custom') ? '' : 'hidden';
-    }
-
-    function saveSettings() {
-        gameConfigs[editingGameId] = {
-            time: parseInt(document.getElementById('game-time-input').value),
-            source: document.getElementById('word-source-select').value,
-            customWords: document.getElementById('custom-game-words').value,
-            specificBook: parseInt(document.getElementById('specific-book-picker').value)
-        };
-        localStorage.setItem('game_configs', JSON.stringify(gameConfigs));
-        closeAll();
-    }
-
-    // --- GAME ENGINE ---
-    function startGame(type) {
-        const config = gameConfigs[type] || { time: 15, source: 'all' };
-        let pool = [];
-
-        if (config.source === 'all') pool = vocabBooks.flatMap(b => b.words);
-        else if (config.source === 'specific') pool = vocabBooks[config.specificBook]?.words || [];
-        else if (config.source === 'custom') pool = config.customWords.split(/[,\n]/).map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
-
-        if (pool.length === 0) return alert("No words found for this source!");
+        const navId = id.includes('vocab') ? 'vocab' : id;
+        if(document.getElementById('nav-' + navId)) document.getElementById('nav-' + navId).classList.add('active');
         
-        currentType = type; sessionXP = 0; activePool = pool;
-        document.getElementById('game-overlay').style.display = 'flex';
-        document.getElementById('game-active').classList.remove('hidden'); document.getElementById('game-over').classList.add('hidden');
-        nextQ();
+        if(id === 'vocab-notebook') renderNotebook();
+        clearInterval(gameTimer);
     }
 
-    function nextQ() {
-        const word = activePool[Math.floor(Math.random() * activePool.length)];
-        currentQ = { a: word };
-        if (['scramble', 'space'].includes(currentType)) {
-            currentQ.q = word.split('').sort(() => Math.random() - 0.5).join('-');
-            showInputUI();
-        } else {
-            currentQ.q = (currentType === 'emoji') ? "Guess the emoji word!" : word;
-            showChoiceUI();
-        }
-        startTimer();
+    // --- 阅读助手逻辑 ---
+    function startSmartRead() {
+        const text = document.getElementById('read-raw-text').value;
+        if(!text) return;
+        document.getElementById('read-input-view').classList.add('hidden');
+        const display = document.getElementById('read-display');
+        display.classList.remove('hidden');
+        
+        display.innerHTML = text.split(/\s+/).map(word => {
+            const clean = word.replace(/[^a-zA-Z]/g, '');
+            return `<span class="read-word" onclick="handleWordClick('${clean}')">${word} </span>`;
+        }).join('');
     }
 
-    function startTimer() {
-        clearInterval(timer); timeLeft = 100;
-        const config = gameConfigs[currentType] || { time: 15 };
-        const step = 100 / (config.time * 10);
-        timer = setInterval(() => {
-            timeLeft -= step; document.getElementById('timer-bar').style.width = timeLeft + "%";
-            if(timeLeft <= 0) { clearInterval(timer); document.getElementById('game-active').classList.add('hidden'); document.getElementById('game-over').classList.remove('hidden'); document.getElementById('final-xp').innerText = "+" + sessionXP + " XP"; }
-        }, 100);
+    function resetRead() {
+        document.getElementById('read-input-view').classList.remove('hidden');
+        document.getElementById('read-display').classList.add('hidden');
     }
 
-    function validate(ans) {
-        if(ans.toUpperCase().trim() === currentQ.a) {
-            sessionXP += 50; totalXP += 50; localStorage.setItem('xp', totalXP); updateStats(); nextQ();
-        } else {
-            document.getElementById('q-content').style.color = 'var(--danger)'; setTimeout(() => document.getElementById('q-content').style.color = 'var(--primary)', 500);
+    function handleWordClick(word) {
+        speak(word);
+        if(confirm(`识别到单词 "${word}"，是否将其存入生词本？`)) {
+            if(!notebook.find(w => w.word.toLowerCase() === word.toLowerCase())) {
+                notebook.unshift({word: word, cn: '来自阅读识别', id: Date.now()});
+                saveData();
+            }
         }
     }
 
-    function showInputUI() { document.getElementById('q-content').innerText = currentQ.q; document.getElementById('input-ui').classList.remove('hidden'); document.getElementById('choice-ui').classList.add('hidden'); document.getElementById('user-input').value = ""; document.getElementById('user-input').focus(); }
-    function showChoiceUI() { document.getElementById('q-content').innerText = currentQ.q; document.getElementById('input-ui').classList.add('hidden'); const grid = document.getElementById('choice-ui'); grid.classList.remove('hidden'); const opts = [currentQ.a, "WRONG"].sort(() => Math.random() - 0.5); grid.innerHTML = opts.map(o => `<button class="btn-play" onclick="validate('${o}')">${o}</button>`).join(''); }
-    function openReviewCenter() { document.getElementById('review-overlay').style.display = 'flex'; }
-    function updateStats() { document.getElementById('global-score').innerText = totalXP; document.getElementById('mistake-count').innerText = mistakeBank.length; }
-    function closeAll() { clearInterval(timer); document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none'); }
+    // --- 词库管理逻辑 ---
+    function renderNotebook() {
+        const list = document.getElementById('nb-list');
+        list.innerHTML = notebook.map((w, i) => `
+            <div class="word-item">
+                <div class="word-info">
+                    <h3>${w.word}</h3>
+                    <p>${w.cn}</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-outline" style="padding:10px" onclick="speak('${w.word}')">🔊</button>
+                    <button class="btn" style="background:var(--accent); padding:10px" onclick="deleteWord(${i})">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
 
-    init();
+    function processBatchAdd() {
+        const input = document.getElementById('batch-input').value;
+        const words = input.split('\n').map(w => w.trim()).filter(w => w);
+        words.forEach(w => {
+            notebook.unshift({word: w, cn: '待解析...', id: Date.now() + Math.random()});
+        });
+        saveData();
+        closeModals();
+        renderNotebook();
+    }
+
+    // --- 5款游戏引擎 ---
+    function launchGame(type) {
+        if(notebook.length < 4) { alert("词库单词不足！请先至少添加4个单词。"); return; }
+        showPage('stage');
+        score = 0; updateScore();
+        const stage = document.getElementById('g-content');
+        const title = document.getElementById('g-title');
+
+        if(type === 'match') {
+            title.innerText = "🧩 中英连连看";
+            let cards = [];
+            notebook.slice(0, 4).forEach(w => {
+                cards.push({id: w.id, val: w.word, type: 'en'}, {id: w.id, val: w.cn, type: 'cn'});
+            });
+            cards.sort(() => 0.5 - Math.random());
+            stage.innerHTML = `<div class="match-grid">${cards.map(c => `<div class="match-card" data-id="${c.id}" data-type="${c.type}" onclick="handleMatch(this)">${c.val}</div>`).join('')}</div>`;
+        } 
+        else if(type === 'whack') {
+            title.innerText = "🔨 单词打地鼠";
+            stage.innerHTML = `<div class="mole-grid">${Array(6).fill('<div class="hole"><div class="mole"></div></div>').join('')}</div>`;
+            const moles = document.querySelectorAll('.mole');
+            gameTimer = setInterval(() => {
+                const m = moles[Math.floor(Math.random()*6)];
+                const w = notebook[Math.floor(Math.random()*notebook.length)];
+                m.innerText = w.word; m.classList.add('up');
+                m.onclick = () => { score+=10; updateScore(); m.classList.remove('up'); speak(w.word); };
+                setTimeout(() => m.classList.remove('up'), 1500);
+            }, 2000);
+        }
+        else if(type === 'flash') {
+            title.innerText = "🃏 闪卡记忆";
+            let cur = 0;
+            const drawFlash = () => {
+                const w = notebook[cur];
+                stage.innerHTML = `
+                    <div class="flash-card" onclick="this.classList.toggle('flipped')">
+                        <div class="flash-inner">
+                            <div class="flash-side flash-front">${w.word}</div>
+                            <div class="flash-side flash-back"><h3>${w.cn}</h3><p>点击翻回正面</p></div>
+                        </div>
+                    </div>
+                    <button class="btn" style="margin-top:30px;" onclick="cur=(cur+1)%notebook.length; drawFlash()">下一个 Next</button>
+                `;
+            };
+            drawFlash();
+        }
+        else if(type === 'chain') {
+            title.innerText = "🔗 单词接龙";
+            let last = "apple";
+            stage.innerHTML = `
+                <div style="text-align:center;">
+                    <h3 style="font-size:2rem;">上个单词: <span style="color:var(--primary)">${last}</span></h3>
+                    <p>请输入以 "${last.slice(-1).toUpperCase()}" 开头的单词</p>
+                    <input id="chain-in" style="font-size:1.5rem; text-align:center; padding:15px; border-radius:15px; border:1px solid var(--border); width:80%;">
+                    <button class="btn" style="display:block; margin:20px auto;" onclick="checkChain()">提交 Submit</button>
+                </div>
+            `;
+            window.checkChain = () => {
+                const input = document.getElementById('chain-in').value.toLowerCase().trim();
+                if(input.startsWith(last.slice(-1))) {
+                    last = input; score += 5; updateScore();
+                    launchGame('chain'); // 重新渲染状态，此处简单演示
+                } else { alert("首尾不匹配！"); }
+            };
+        }
+        else if(type === 'spell') {
+            title.innerText = "✍️ 听音拼写";
+            const target = notebook[Math.floor(Math.random()*notebook.length)];
+            stage.innerHTML = `
+                <div style="text-align:center;">
+                    <button class="btn btn-outline" onclick="speak('${target.word}')">🔊 播放读音</button>
+                    <input id="spell-in" placeholder="在此拼写单词..." style="display:block; margin:30px auto; width:80%; font-size:1.5rem; text-align:center;">
+                    <button class="btn" onclick="checkSpell('${target.word}')">检查 Check</button>
+                </div>
+            `;
+            window.checkSpell = (correct) => {
+                if(document.getElementById('spell-in').value.trim().toLowerCase() === correct.toLowerCase()) {
+                    alert("拼写正确！"); score += 20; updateScore(); launchGame('spell');
+                } else { alert("再试一次！"); }
+            };
+        }
+    }
+
+    // 连连看逻辑
+    let selected = [];
+    function handleMatch(el) {
+        if(el.classList.contains('matched') || selected.includes(el)) return;
+        el.classList.add('selected');
+        selected.push(el);
+        if(selected.length === 2) {
+            const [a, b] = selected;
+            if(a.dataset.id === b.dataset.id && a.dataset.type !== b.dataset.type) {
+                a.classList.add('matched'); b.classList.add('matched');
+                score += 15; updateScore();
+                speak(a.dataset.type === 'en' ? a.innerText : b.innerText);
+            } else {
+                setTimeout(() => { a.classList.remove('selected'); b.classList.remove('selected'); }, 500);
+            }
+            selected = [];
+        }
+    }
+
+    // --- 工具函数 ---
+    function speak(text) { window.speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
+    function updateScore() { document.getElementById('g-score').innerText = "Score: " + score; }
+    function saveData() { localStorage.setItem('eh_notebook', JSON.stringify(notebook)); }
+    function deleteWord(i) { notebook.splice(i, 1); saveData(); renderNotebook(); }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+    
+    // 初始化
+    showPage('home');
 </script>
 </body>
 </html>
