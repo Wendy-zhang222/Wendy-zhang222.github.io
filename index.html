@@ -3,46 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnglishHub - Full Edition</title>
+    <title>EnglishHub - Advanced Control</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #6366f1; --secondary: #a855f7; --success: #22c55e; --danger: #ef4444; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; margin: 0; background-color: var(--bg); background-image: radial-gradient(var(--primary) 0.5px, transparent 0.5px); background-size: 30px 30px; color: #1e293b; }
-        
-        /* Navbar */
         nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         .logo { font-weight: 900; font-size: 1.5rem; color: var(--primary); }
         .nav-btns { display: flex; gap: 10px; align-items: center; }
-        .btn-review { background: #fff1f2; color: #be123c; border: 2px solid #fda4af; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-
-        /* Layout */
+        .btn-review { background: #fff1f2; color: #be123c; border: 2px solid #fda4af; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px 20px 60px; }
         .section-title { font-size: 1.8rem; font-weight: 800; margin: 40px 0 20px; color: #1e293b; display: flex; align-items: center; gap: 12px; }
-        .section-title i { background: var(--primary); color: white; padding: 8px; border-radius: 12px; font-style: normal; font-size: 1.2rem; }
-
-        /* Vocabulary Books */
+        .section-title i { background: var(--primary); color: white; padding: 8px; border-radius: 12px; font-style: normal; }
         .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .book-card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); border: 2px solid #e2e8f0; transition: 0.3s; position: relative; }
-        .book-card:hover { border-color: var(--primary); transform: translateY(-5px); }
-        .book-badge { position: absolute; top: 15px; right: 15px; font-size: 0.7rem; font-weight: bold; color: var(--primary); background: #eef2ff; padding: 4px 10px; border-radius: 20px; }
-
-        /* Game Grid - Original Style */
+        .book-card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); border: 2px solid #e2e8f0; position: relative; }
         .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
         .game-card { background: white; border-radius: 24px; padding: 25px; text-align: center; border: 4px solid transparent; box-shadow: 0 10px 15px rgba(0,0,0,0.05); transition: 0.3s; }
         .game-card:hover { transform: translateY(-5px); border-color: var(--primary); }
-        .game-icon { font-size: 50px; display: block; margin-bottom: 10px; }
-
-        /* Modals & UI */
         .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1000; align-items: center; justify-content: center; }
         .modal { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 30px; text-align: center; position: relative; max-height: 85vh; overflow-y: auto; }
         .close-x { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
         .btn-play { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
         .btn-edit { background: #f1f5f9; color: #64748b; border: none; padding: 8px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; margin-top: 10px; width: 100%; font-weight: 600; }
-        
         .timer-wrap { width: 100%; height: 10px; background: #e2e8f0; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
         #timer-bar { width: 100%; height: 100%; background: var(--primary); transition: width 0.1s linear; }
         .q-text { font-size: 2.2rem; font-weight: 900; color: var(--primary); margin-bottom: 20px; }
-        input, textarea, select { width: 90%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; font-family: inherit; }
+        input, textarea, select { width: 95%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; font-family: inherit; }
+        .setting-box { background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: left; }
         .hidden { display: none; }
     </style>
 </head>
@@ -69,73 +56,50 @@
     <div class="game-grid" id="menu"></div>
 </div>
 
-<div id="review-overlay" class="overlay">
-    <div class="modal">
-        <div class="close-x" onclick="closeAll()">×</div>
-        <h2 style="color: var(--danger);">Mistake Bank</h2>
-        <div id="mistake-list" style="text-align: left; margin-top: 20px; max-height: 300px; overflow-y: auto;"></div>
-        <button class="btn-play" onclick="clearMistakes()" style="background: #64748b; margin-top: 20px;">Clear All</button>
-    </div>
-</div>
-
-<div id="book-modal" class="overlay">
-    <div class="modal">
-        <div class="close-x" onclick="closeAll()">×</div>
-        <h2>Vocabulary Book</h2>
-        <input type="text" id="book-name" placeholder="Book Name (e.g., IELTS Unit 1)">
-        <select id="book-category">
-            <option value="Textbook">Textbook</option>
-            <option value="IELTS">IELTS</option>
-            <option value="General">General</option>
-        </select>
-        <p style="font-size: 0.8rem; color: #64748b; text-align: left;">Batch Import (Comma separated):</p>
-        <textarea id="book-words" placeholder="Apple, Banana, Cat..." style="height: 120px;"></textarea>
-        <button class="btn-play" onclick="saveBook()">SAVE BOOK</button>
-    </div>
-</div>
-
-<div id="game-overlay" class="overlay">
-    <div class="modal">
-        <div class="close-x" onclick="closeAll()">×</div>
-        <div id="game-active">
-            <div class="timer-wrap"><div id="timer-bar"></div></div>
-            <div id="q-content" class="q-text">---</div>
-            <div id="input-ui" class="hidden">
-                <input type="text" id="user-input" placeholder="Type answer..." autocomplete="off">
-                <button class="btn-play" onclick="checkInput()">SUBMIT</button>
-            </div>
-            <div id="choice-ui" class="hidden" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
-        </div>
-        <div id="game-over" class="hidden">
-            <h1>🎉 Mission Done!</h1>
-            <h2 id="final-xp" style="color:var(--primary)">+0 XP</h2>
-            <button class="btn-play" onclick="closeAll()">BACK TO HUB</button>
-        </div>
-    </div>
-</div>
+<div id="book-modal" class="overlay"><div class="modal"><div class="close-x" onclick="closeAll()">×</div><h2>Word Book</h2><input type="text" id="book-name" placeholder="Book Name"><textarea id="book-words" placeholder="Apple, Banana, Cat..." style="height: 120px;"></textarea><button class="btn-play" onclick="saveBook()">SAVE BOOK</button></div></div>
 
 <div id="settings-overlay" class="overlay">
     <div class="modal">
         <div class="close-x" onclick="closeAll()">×</div>
         <h2 id="settings-title">Game Settings</h2>
-        <div style="background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-            <span>⏱️ Timer (Seconds):</span>
-            <input type="number" id="game-time-input" style="width: 70px; margin:0;" min="5" value="15" onchange="updateTimeLimit()">
+        
+        <div class="setting-box">
+            <label>⏱️ Timer (Seconds):</label>
+            <input type="number" id="game-time-input" min="5">
         </div>
-        <button class="btn-play" onclick="closeAll()">SAVE & CLOSE</button>
+
+        <div class="setting-box">
+            <label>📖 Word Source:</label>
+            <select id="word-source-select" onchange="toggleSourceUI()">
+                <option value="all">All Vocabulary Books</option>
+                <option value="specific">Specific Book...</option>
+                <option value="custom">Custom (Type words below)</option>
+            </select>
+            
+            <div id="specific-book-ui" class="hidden">
+                <select id="specific-book-picker" style="margin-top:10px;"></select>
+            </div>
+
+            <div id="custom-words-ui" class="hidden">
+                <textarea id="custom-game-words" placeholder="Word1, Word2, Word3..." style="height: 80px; margin-top:10px;"></textarea>
+            </div>
+        </div>
+
+        <button class="btn-play" onclick="saveSettings()">SAVE & CLOSE</button>
     </div>
 </div>
+
+<div id="game-overlay" class="overlay"><div class="modal"><div class="close-x" onclick="closeAll()">×</div><div id="game-active"><div class="timer-wrap"><div id="timer-bar"></div></div><div id="q-content" class="q-text">---</div><div id="input-ui" class="hidden"><input type="text" id="user-input" autocomplete="off"><button class="btn-play" onclick="checkInput()">SUBMIT</button></div><div id="choice-ui" class="hidden" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div></div><div id="game-over" class="hidden"><h1>🎉 Done!</h1><h2 id="final-xp">+0 XP</h2><button class="btn-play" onclick="closeAll()">BACK</button></div></div></div>
 
 <script>
     let totalXP = parseInt(localStorage.getItem('xp')) || 0;
     let mistakeBank = JSON.parse(localStorage.getItem('mistake_bank')) || [];
-    let vocabBooks = JSON.parse(localStorage.getItem('vocab_books')) || [{ name: "Default", cat: "General", words: ["APPLE", "DOG", "CAT"] }];
-    let gameTimes = JSON.parse(localStorage.getItem('game_times')) || {};
+    let vocabBooks = JSON.parse(localStorage.getItem('vocab_books')) || [{ name: "Demo", words: ["APPLE", "DOG", "CAT"] }];
+    let gameConfigs = JSON.parse(localStorage.getItem('game_configs')) || {};
 
-    let timer, timeLeft, currentQ, currentType, sessionXP = 0;
-    let editingGameId = '';
+    let timer, timeLeft, currentQ, currentType, sessionXP = 0, editingGameId = '';
 
-    const gameConfig = [
+    const games = [
         { id: 'scramble', name: 'Word Scramble', icon: '🌪️' },
         { id: 'emoji', name: 'Emoji Riddle', icon: '🧩' },
         { id: 'bee', name: 'Spelling Bee', icon: '🐝' },
@@ -148,89 +112,91 @@
         { id: 'nature', name: 'Nature Match', icon: '🌿' }
     ];
 
-    function init() {
-        renderBooks();
-        renderMenu();
-        updateStats();
-    }
+    function init() { renderBooks(); renderMenu(); updateStats(); }
 
-    // --- VOCABULARY ---
     function renderBooks() {
         const container = document.getElementById('vocab-books');
-        const addBtn = container.lastElementChild;
-        container.innerHTML = '';
+        const addBtn = container.lastElementChild; container.innerHTML = '';
         vocabBooks.forEach((book, idx) => {
-            container.innerHTML += `
-                <div class="book-card">
-                    <span class="book-badge">${book.cat}</span>
-                    <h3 style="margin:0;">${book.name}</h3>
-                    <p style="font-size: 0.8rem; color:#64748b;">${book.words.length} Words</p>
-                    <button class="btn-edit" onclick="deleteBook(${idx})">🗑️ Delete</button>
-                </div>`;
+            container.innerHTML += `<div class="book-card"><h3 style="margin:0;">${book.name}</h3><p>${book.words.length} Words</p><button class="btn-edit" onclick="deleteBook(${idx})">🗑️ Delete</button></div>`;
         });
         container.appendChild(addBtn);
     }
 
-    function openBookEditor() { 
-        document.getElementById('book-name').value = '';
-        document.getElementById('book-words').value = '';
-        document.getElementById('book-modal').style.display = 'flex'; 
-    }
-
+    function openBookEditor() { document.getElementById('book-modal').style.display = 'flex'; }
     function saveBook() {
-        const name = document.getElementById('book-name').value;
-        const cat = document.getElementById('book-category').value;
-        const words = document.getElementById('book-words').value.split(/[,\n]/).map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
-        if(!name || words.length === 0) return alert("Please add a name and words.");
-        vocabBooks.push({ name, cat, words });
-        localStorage.setItem('vocab_books', JSON.stringify(vocabBooks));
+        const name = document.getElementById('book-name').value, words = document.getElementById('book-words').value.split(/[,\n]/).map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
+        if(!name || words.length === 0) return;
+        vocabBooks.push({ name, words }); localStorage.setItem('vocab_books', JSON.stringify(vocabBooks));
         closeAll(); renderBooks();
     }
+    function deleteBook(idx) { vocabBooks.splice(idx, 1); localStorage.setItem('vocab_books', JSON.stringify(vocabBooks)); renderBooks(); }
 
-    function deleteBook(idx) {
-        vocabBooks.splice(idx, 1);
-        localStorage.setItem('vocab_books', JSON.stringify(vocabBooks));
-        renderBooks();
-    }
-
-    // --- GAMES ---
     function renderMenu() {
         const menu = document.getElementById('menu'); menu.innerHTML = '';
-        gameConfig.forEach(g => {
-            menu.innerHTML += `
-                <div class="game-card">
-                    <span class="game-icon">${g.icon}</span>
-                    <h3>${g.name}</h3>
-                    <button class="btn-play" onclick="startGame('${g.id}')">PLAY</button>
-                    <button class="btn-edit" onclick="openSettings('${g.id}')">⚙️ SETTINGS</button>
-                </div>`;
+        games.forEach(g => {
+            menu.innerHTML += `<div class="game-card"><span class="game-icon">${g.icon}</span><h3>${g.name}</h3><button class="btn-play" onclick="startGame('${g.id}')">PLAY</button><button class="btn-edit" onclick="openSettings('${g.id}')">⚙️ SETTINGS</button></div>`;
         });
     }
 
-    function startGame(type) {
-        const allWords = vocabBooks.flatMap(b => b.words);
-        if(allWords.length === 0) return alert("Please create a vocabulary book first!");
+    // --- SETTINGS LOGIC ---
+    function openSettings(id) {
+        editingGameId = id;
+        const config = gameConfigs[id] || { time: 15, source: 'all', customWords: '', specificBook: 0 };
+        document.getElementById('game-time-input').value = config.time;
+        document.getElementById('word-source-select').value = config.source;
+        document.getElementById('custom-game-words').value = config.customWords;
         
-        currentType = type; sessionXP = 0;
+        const picker = document.getElementById('specific-book-picker');
+        picker.innerHTML = vocabBooks.map((b, i) => `<option value="${i}">${b.name}</option>`).join('');
+        picker.value = config.specificBook || 0;
+
+        toggleSourceUI();
+        document.getElementById('settings-overlay').style.display = 'flex';
+    }
+
+    function toggleSourceUI() {
+        const source = document.getElementById('word-source-select').value;
+        document.getElementById('specific-book-ui').className = (source === 'specific') ? '' : 'hidden';
+        document.getElementById('custom-words-ui').className = (source === 'custom') ? '' : 'hidden';
+    }
+
+    function saveSettings() {
+        gameConfigs[editingGameId] = {
+            time: parseInt(document.getElementById('game-time-input').value),
+            source: document.getElementById('word-source-select').value,
+            customWords: document.getElementById('custom-game-words').value,
+            specificBook: parseInt(document.getElementById('specific-book-picker').value)
+        };
+        localStorage.setItem('game_configs', JSON.stringify(gameConfigs));
+        closeAll();
+    }
+
+    // --- GAME ENGINE ---
+    function startGame(type) {
+        const config = gameConfigs[type] || { time: 15, source: 'all' };
+        let pool = [];
+
+        if (config.source === 'all') pool = vocabBooks.flatMap(b => b.words);
+        else if (config.source === 'specific') pool = vocabBooks[config.specificBook]?.words || [];
+        else if (config.source === 'custom') pool = config.customWords.split(/[,\n]/).map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
+
+        if (pool.length === 0) return alert("No words found for this source!");
+        
+        currentType = type; sessionXP = 0; activePool = pool;
         document.getElementById('game-overlay').style.display = 'flex';
-        document.getElementById('game-active').classList.remove('hidden');
-        document.getElementById('game-over').classList.add('hidden');
+        document.getElementById('game-active').classList.remove('hidden'); document.getElementById('game-over').classList.add('hidden');
         nextQ();
     }
 
     function nextQ() {
-        const allWords = vocabBooks.flatMap(b => b.words);
-        const word = allWords[Math.floor(Math.random() * allWords.length)];
-        
+        const word = activePool[Math.floor(Math.random() * activePool.length)];
         currentQ = { a: word };
-
-        // Logic for different game types
         if (['scramble', 'space'].includes(currentType)) {
             currentQ.q = word.split('').sort(() => Math.random() - 0.5).join('-');
             showInputUI();
         } else {
-            currentQ.q = currentType === 'emoji' ? "Find the Word" : word;
-            currentQ.wrong = "RANDOM_" + Math.floor(Math.random()*100); 
+            currentQ.q = (currentType === 'emoji') ? "Guess the emoji word!" : word;
             showChoiceUI();
         }
         startTimer();
@@ -238,76 +204,26 @@
 
     function startTimer() {
         clearInterval(timer); timeLeft = 100;
-        const limit = gameTimes[currentType] || 15;
-        const step = 100 / (limit * 10);
+        const config = gameConfigs[currentType] || { time: 15 };
+        const step = 100 / (config.time * 10);
         timer = setInterval(() => {
-            timeLeft -= step;
-            document.getElementById('timer-bar').style.width = timeLeft + "%";
-            if(timeLeft <= 0) {
-                clearInterval(timer);
-                document.getElementById('game-active').classList.add('hidden');
-                document.getElementById('game-over').classList.remove('hidden');
-                document.getElementById('final-xp').innerText = "+" + sessionXP + " XP";
-            }
+            timeLeft -= step; document.getElementById('timer-bar').style.width = timeLeft + "%";
+            if(timeLeft <= 0) { clearInterval(timer); document.getElementById('game-active').classList.add('hidden'); document.getElementById('game-over').classList.remove('hidden'); document.getElementById('final-xp').innerText = "+" + sessionXP + " XP"; }
         }, 100);
     }
 
     function validate(ans) {
         if(ans.toUpperCase().trim() === currentQ.a) {
-            sessionXP += 50; totalXP += 50; localStorage.setItem('xp', totalXP);
-            updateStats(); nextQ();
+            sessionXP += 50; totalXP += 50; localStorage.setItem('xp', totalXP); updateStats(); nextQ();
         } else {
-            if(!mistakeBank.some(m => m.word === currentQ.a)) {
-                mistakeBank.push({word: currentQ.a, type: currentType});
-                localStorage.setItem('mistake_bank', JSON.stringify(mistakeBank));
-                updateStats();
-            }
-            document.getElementById('q-content').style.color = 'var(--danger)';
-            setTimeout(() => document.getElementById('q-content').style.color = 'var(--primary)', 500);
+            document.getElementById('q-content').style.color = 'var(--danger)'; setTimeout(() => document.getElementById('q-content').style.color = 'var(--primary)', 500);
         }
     }
 
-    // --- UI HELPERS ---
-    function showInputUI() {
-        document.getElementById('q-content').innerText = currentQ.q;
-        document.getElementById('input-ui').classList.remove('hidden');
-        document.getElementById('choice-ui').classList.add('hidden');
-        document.getElementById('user-input').value = ""; document.getElementById('user-input').focus();
-    }
-
-    function showChoiceUI() {
-        document.getElementById('q-content').innerText = currentQ.q;
-        document.getElementById('input-ui').classList.add('hidden');
-        const grid = document.getElementById('choice-ui');
-        grid.classList.remove('hidden');
-        const opts = [currentQ.a, currentQ.wrong].sort(() => Math.random() - 0.5);
-        grid.innerHTML = opts.map(o => `<button class="btn-play" onclick="validate('${o}')">${o}</button>`).join('');
-    }
-
-    function openSettings(id) {
-        editingGameId = id;
-        document.getElementById('game-time-input').value = gameTimes[id] || 15;
-        document.getElementById('settings-overlay').style.display = 'flex';
-    }
-
-    function updateTimeLimit() {
-        gameTimes[editingGameId] = parseInt(document.getElementById('game-time-input').value);
-        localStorage.setItem('game_times', JSON.stringify(gameTimes));
-    }
-
-    function openReviewCenter() {
-        const list = document.getElementById('mistake-list');
-        list.innerHTML = mistakeBank.length === 0 ? '<p>No mistakes yet!</p>' : '';
-        mistakeBank.forEach(m => list.innerHTML += `<div style="padding:10px; background:#fef2f2; border-radius:10px; margin-bottom:5px;"><strong>${m.word}</strong> <small>(${m.type})</small></div>`);
-        document.getElementById('review-overlay').style.display = 'flex';
-    }
-
-    function clearMistakes() { mistakeBank = []; localStorage.setItem('mistake_bank', '[]'); updateStats(); openReviewCenter(); }
-    function checkInput() { validate(document.getElementById('user-input').value); }
-    function updateStats() { 
-        document.getElementById('global-score').innerText = totalXP;
-        document.getElementById('mistake-count').innerText = mistakeBank.length;
-    }
+    function showInputUI() { document.getElementById('q-content').innerText = currentQ.q; document.getElementById('input-ui').classList.remove('hidden'); document.getElementById('choice-ui').classList.add('hidden'); document.getElementById('user-input').value = ""; document.getElementById('user-input').focus(); }
+    function showChoiceUI() { document.getElementById('q-content').innerText = currentQ.q; document.getElementById('input-ui').classList.add('hidden'); const grid = document.getElementById('choice-ui'); grid.classList.remove('hidden'); const opts = [currentQ.a, "WRONG"].sort(() => Math.random() - 0.5); grid.innerHTML = opts.map(o => `<button class="btn-play" onclick="validate('${o}')">${o}</button>`).join(''); }
+    function openReviewCenter() { document.getElementById('review-overlay').style.display = 'flex'; }
+    function updateStats() { document.getElementById('global-score').innerText = totalXP; document.getElementById('mistake-count').innerText = mistakeBank.length; }
     function closeAll() { clearInterval(timer); document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none'); }
 
     init();
