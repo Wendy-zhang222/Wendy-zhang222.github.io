@@ -3,1811 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun English Learning Hub - 20 Games</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <title>EnglishHub - Full Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --brand: #4f46e5; 
-            --accent: #06b6d4; 
-            --success: #10b981; 
-            --bg: #f8fafc; 
-            --orange: #f97316;
-            --pink: #ec4899;
-            --purple: #8b5cf6;
-            --gray: #64748b;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow-x: hidden; }
+        :root { --primary: #6366f1; --secondary: #a855f7; --success: #22c55e; --danger: #ef4444; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background-color: var(--bg); background-image: radial-gradient(var(--primary) 0.5px, transparent 0.5px); background-size: 30px 30px; color: #1e293b; }
         
-        .main-header { 
-            background: linear-gradient(135deg, var(--brand), var(--accent)); 
-            color: white; 
-            padding: 20px; 
-            text-align: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-            position: relative; 
-            z-index: 10;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .main-header h1 { margin: 0; font-size: 28px; letter-spacing: 1px; }
-        .back-btn { 
-            background: rgba(255,255,255,0.2); 
-            border: none; 
-            color: white; 
-            padding: 10px 20px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            transition: 0.2s;
-        }
-        .back-btn:hover { background: rgba(255,255,255,0.3); }
-        .user-panel {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-        .user-role-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-        .auth-btn {
-            background: rgba(255,255,255,0.2);
-            border: 2px solid white;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        .auth-btn:hover {
-            background: white;
-            color: var(--brand);
-        }
+        /* Navbar */
+        nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 900; font-size: 1.5rem; color: var(--primary); }
+        .nav-btns { display: flex; gap: 10px; align-items: center; }
+        .btn-review { background: #fff1f2; color: #be123c; border: 2px solid #fda4af; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; }
 
-        .page { display: none; min-height: calc(100vh - 75px); overflow-y: auto; padding-bottom: 40px; }
-        .page.active { display: block; }
+        /* Layout */
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px 20px 60px; }
+        .section-title { font-size: 1.8rem; font-weight: 800; margin: 40px 0 20px; color: #1e293b; display: flex; align-items: center; gap: 12px; }
+        .section-title i { background: var(--primary); color: white; padding: 8px; border-radius: 12px; font-style: normal; font-size: 1.2rem; }
 
-        .home-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-            gap: 30px; 
-            padding: 40px 30px; 
-            max-width: 1400px; 
-            margin: auto; 
-        }
-        .home-card { 
-            background: white; 
-            border-radius: 20px; 
-            overflow: hidden; 
-            cursor: pointer; 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
-            transition: transform 0.3s, box-shadow 0.3s; 
-            border: 3px solid transparent;
-            display: flex;
-            flex-direction: column;
-            min-height: 350px;
-            position: relative;
-        }
-        .home-card:hover { 
-            transform: translateY(-10px); 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15); 
-        }
-        .home-card-icon { 
-            height: 200px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 80px; 
-            color: white;
-        }
-        .home-card-content { 
-            padding: 25px; 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px;
-        }
-        .home-card-title { 
-            margin: 0; 
-            font-size: 24px; 
-            color: #1e293b; 
-            font-weight: 900;
-        }
-        .home-card-desc { 
-            margin: 0; 
-            font-size: 15px; 
-            color: #64748b; 
-            line-height: 1.6;
-        }
-        .home-card-tag {
-            display: inline-block;
-            background: #f1f5f9;
-            color: #475569;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: auto;
-            width: fit-content;
-        }
+        /* Vocabulary Books */
+        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .book-card { background: white; border-radius: 24px; padding: 25px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); border: 2px solid #e2e8f0; transition: 0.3s; position: relative; }
+        .book-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .book-badge { position: absolute; top: 15px; right: 15px; font-size: 0.7rem; font-weight: bold; color: var(--primary); background: #eef2ff; padding: 4px 10px; border-radius: 20px; }
 
-        .filter-bar {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 20px 20px 0;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .filter-btn {
-            padding: 8px 18px;
-            border: 2px solid #e2e8f0;
-            background: white;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--gray);
-            transition: 0.2s;
-        }
-        .filter-btn:hover { border-color: var(--brand); color: var(--brand); }
-        .filter-btn.active {
-            background: var(--brand);
-            color: white;
-            border-color: var(--brand);
-        }
-        .filter-btn.easy.active { background: var(--success); border-color: var(--success); }
-        .filter-btn.medium.active { background: var(--orange); border-color: var(--orange); }
-        .filter-btn.hard.active { background: var(--pink); border-color: var(--pink); }
+        /* Game Grid - Original Style */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
+        .game-card { background: white; border-radius: 24px; padding: 25px; text-align: center; border: 4px solid transparent; box-shadow: 0 10px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .game-icon { font-size: 50px; display: block; margin-bottom: 10px; }
 
-        .game-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
-            gap: 25px; 
-            padding: 30px 20px; 
-            max-width: 1200px; 
-            margin: auto; 
-        }
-        .game-card { 
-            background: white; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            cursor: pointer; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
-            transition: transform 0.2s, box-shadow 0.2s; 
-            border: 2px solid transparent;
-        }
-        .game-card:hover { 
-            transform: translateY(-6px); 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.12); 
-            border-color: var(--brand); 
-        }
-        .game-card-img { 
-            width: 100%; 
-            height: 160px; 
-            object-fit: cover; 
-            border-bottom: 3px solid #f1f5f9; 
-            transition: 0.3s; 
-            background: linear-gradient(135deg, var(--brand), var(--accent));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 60px;
-            color: white;
-        }
-        .game-card-content { 
-            padding: 18px; 
-            text-align: left; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            flex: 1; 
-        }
-        .game-card-title { 
-            margin: 0; 
-            font-size: 20px; 
-            color: #1e293b; 
-            font-weight: 800;
-        }
-        .game-card-desc { 
-            margin: 0; 
-            font-size: 14px; 
-            color: #64748b; 
-            line-height: 1.5; 
-        }
-        .difficulty-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            width: fit-content;
-        }
-        .difficulty-easy { background: #d1fae5; color: #065f46; }
-        .difficulty-medium { background: #fed7aa; color: #92400e; }
-        .difficulty-hard { background: #fecdd3; color: #9f1239; }
-
-        #game-stage { 
-            position: fixed; 
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            z-index: 100; 
-            display: none; 
-            flex-direction: column; 
-        }
-        #game-header { 
-            padding: 15px 25px; 
-            background: #f1f5f9; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid #e2e8f0; 
-            font-size: 18px;
-        }
-        #game-hint { 
-            padding: 10px 25px; 
-            background: #e0f2fe; 
-            color: #0369a1; 
-            font-size: 14px; 
-            border-bottom: 1px solid #bae6fd; 
-        }
-        #game-viewport { 
-            flex: 1; 
-            position: relative; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            overflow: auto; 
-            background: #fff; 
-            padding: 20px;
-        }
+        /* Modals & UI */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1000; align-items: center; justify-content: center; }
+        .modal { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 30px; text-align: center; position: relative; max-height: 85vh; overflow-y: auto; }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+        .btn-play { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-edit { background: #f1f5f9; color: #64748b; border: none; padding: 8px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; margin-top: 10px; width: 100%; font-weight: 600; }
         
-        .btn { 
-            padding: 10px 20px; 
-            border-radius: 8px; 
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold; 
-            background: #e2e8f0; 
-            transition: 0.2s; 
-            font-size: 16px;
-        }
-        .btn:hover { filter: brightness(0.95); transform: scale(1.02); }
-        .btn-primary { background: var(--brand); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-warning { background: var(--warning); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-small { padding: 6px 12px; font-size: 14px; }
-        
-        .match-box { 
-            display: flex; 
-            gap: 15px; 
-            width: 100%; 
-            max-width: 800px;
-            margin: 0 auto;
-            flex-wrap: wrap;
-        }
-        .col { 
-            flex: 1; 
-            min-width: 250px;
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-        }
-        .item { 
-            padding: 15px; 
-            background: #fff; 
-            border: 2px solid #cbd5e1; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 18px; 
-            transition: 0.2s;
-        }
-        .item:hover { background: #f8fafc; border-color: #94a3b8; }
-        .item.selected { border-color: var(--brand); background: #eef2ff; transform: scale(1.02);}
-        .item.correct { background: var(--success); color: white; border-color: var(--success); opacity: 0.7; pointer-events: none; }
-        
-        .mole-grid { 
-            display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 15px; 
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .hole { 
-            width: 110px; 
-            height: 80px; 
-            background: #475569; 
-            border-radius: 50%; 
-            position: relative; 
-            overflow: hidden; 
-            border: 4px solid #334155;
-        }
-        .mole { 
-            width: 80%; 
-            height: 80%; 
-            background: var(--brand); 
-            position: absolute; 
-            bottom: -100%; 
-            left: 10%; 
-            transition: bottom 0.2s; 
-            border-radius: 50%; 
-            color: white; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: bold; 
-            text-align: center; 
-            padding: 2px;
-        }
-        .mole.up { bottom: 10%; }
-
-        .writing-container { max-width: 1000px; margin: 0 auto; padding: 30px; }
-        .writing-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .writing-title { font-size: 28px; font-weight: 900; color: #1e293b; margin: 0; }
-        .essay-list { display: flex; flex-direction: column; gap: 15px; }
-        .essay-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-left: 4px solid var(--brand); cursor: pointer; transition: 0.2s; }
-        .essay-card:hover { transform: translateX(5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-        .essay-card.graded { border-left-color: var(--success); }
-        .essay-meta { display: flex; gap: 15px; margin-bottom: 10px; font-size: 14px; color: var(--gray); }
-        .essay-preview { color: #1e293b; font-size: 16px; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .essay-status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; }
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-graded { background: #d1fae5; color: #065f46; }
-        .editor-container { display: grid; grid-template-columns: 1fr 350px; gap: 20px; min-height: 500px; }
-        .essay-editor { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; flex-direction: column; }
-        .upload-area { border: 2px dashed #cbd5e1; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 15px; background: #f8fafc; cursor: pointer; transition: 0.2s; }
-        .upload-area:hover { border-color: var(--brand); background: #eff6ff; }
-        .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; margin-top: 10px; overflow: hidden; display: none; }
-        .progress-bar-fill { height: 100%; background: var(--brand); width: 0%; transition: width 0.2s; }
-        .essay-textarea { flex: 1; width: 100%; border: 2px solid #e2e8f0; border-radius: 8px; padding: 15px; font-size: 16px; line-height: 1.8; resize: vertical; font-family: 'Segoe UI', sans-serif; min-height: 300px; }
-        .essay-textarea:focus { outline: none; border-color: var(--brand); }
-        .sidebar { display: flex; flex-direction: column; gap: 15px; }
-        .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .panel-title { font-size: 18px; font-weight: 900; color: #1e293b; margin: 0 0 15px 0; }
-        .error-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
-        .error-item { padding: 8px 12px; background: #fef2f2; border-radius: 8px; font-size: 14px; color: #991b1b; }
-
-        /* 自定义添加单词模态框 */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-overlay.active {
-            display: flex;
-        }
-        .modal-box {
-            background: white;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 400px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .modal-box h3 {
-            margin-bottom: 20px;
-            color: var(--brand);
-        }
-        .modal-box .form-group {
-            margin-bottom: 15px;
-        }
-        .modal-box .form-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .modal-box .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-        }
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
+        .timer-wrap { width: 100%; height: 10px; background: #e2e8f0; border-radius: 10px; margin-bottom: 20px; overflow: hidden; }
+        #timer-bar { width: 100%; height: 100%; background: var(--primary); transition: width 0.1s linear; }
+        .q-text { font-size: 2.2rem; font-weight: 900; color: var(--primary); margin-bottom: 20px; }
+        input, textarea, select { width: 90%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; margin-bottom: 10px; font-family: inherit; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<header class="main-header" id="main-header">
-    <button class="back-btn" id="back-btn" style="visibility:hidden;">← Back</button>
-    <h1 id="header-title">Fun English Learning Hub</h1>
-    <div class="user-panel" id="user-panel">
-        <div class="user-avatar" id="user-avatar">👤</div>
-        <span class="user-role-badge" id="user-role-badge">Guest</span>
-        <button class="auth-btn" id="auth-btn">Sign In</button>
+<nav>
+    <div class="logo">EnglishHub 🚀</div>
+    <div class="nav-btns">
+        <button class="btn-review" onclick="openReviewCenter()">🔴 Mistakes (<span id="mistake-count">0</span>)</button>
+        <div style="background: #eef2ff; padding: 8px 15px; border-radius: 20px; font-weight: bold;">🏆 XP: <span id="global-score">0</span></div>
     </div>
-</header>
+</nav>
 
-<div id="home-page" class="page active">
-    <div class="home-grid" id="home-menu"></div>
-</div>
-
-<div id="games-page" class="page">
-    <div class="filter-bar" id="game-filter-bar"></div>
-    <div class="game-grid" id="games-list"></div>
-</div>
-
-<div id="writing-page" class="page">
-    <div class="writing-container" id="writing-container"></div>
-</div>
-
-<div id="game-stage">
-    <div id="game-header">
-        <div>Score: <span id="game-score" style="color:var(--brand); font-weight:bold;">0</span> | Time: <span id="game-timer" style="color:var(--accent); font-weight:bold;">60</span>s</div>
-        <div id="game-name" style="font-weight:900; color:#1e293b; font-size: 22px;">Game</div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn btn-success" onclick="openAddWordModal()">➕ 添加单词</button>
-            <button class="btn btn-danger" onclick="exitGame()">Exit Game</button>
+<div class="container">
+    <div class="section-title"><i>📚</i> My Vocabulary</div>
+    <div class="vocab-grid" id="vocab-books">
+        <div class="book-card" style="border: 2px dashed #cbd5e1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; min-height: 150px;" onclick="openBookEditor()">
+            <span style="font-size: 40px; color: #94a3b8;">+</span>
+            <p style="color: #64748b; font-weight: bold;">Create New Book</p>
         </div>
     </div>
-    <div id="game-hint"></div>
-    <div id="game-viewport"></div>
+
+    <div class="section-title"><i>🎮</i> Word Games</div>
+    <div class="game-grid" id="menu"></div>
 </div>
 
-<!-- 自定义添加单词模态框 (游戏内使用) -->
-<div class="modal-overlay" id="modal-add-word-game">
-    <div class="modal-box">
-        <h3>➕ 添加新单词到词库</h3>
-        <div class="form-group">
-            <label>英语单词</label>
-            <input type="text" id="game-add-word" placeholder="例如: hello">
+<div id="review-overlay" class="overlay">
+    <div class="modal">
+        <div class="close-x" onclick="closeAll()">×</div>
+        <h2 style="color: var(--danger);">Mistake Bank</h2>
+        <div id="mistake-list" style="text-align: left; margin-top: 20px; max-height: 300px; overflow-y: auto;"></div>
+        <button class="btn-play" onclick="clearMistakes()" style="background: #64748b; margin-top: 20px;">Clear All</button>
+    </div>
+</div>
+
+<div id="book-modal" class="overlay">
+    <div class="modal">
+        <div class="close-x" onclick="closeAll()">×</div>
+        <h2>Vocabulary Book</h2>
+        <input type="text" id="book-name" placeholder="Book Name (e.g., IELTS Unit 1)">
+        <select id="book-category">
+            <option value="Textbook">Textbook</option>
+            <option value="IELTS">IELTS</option>
+            <option value="General">General</option>
+        </select>
+        <p style="font-size: 0.8rem; color: #64748b; text-align: left;">Batch Import (Comma separated):</p>
+        <textarea id="book-words" placeholder="Apple, Banana, Cat..." style="height: 120px;"></textarea>
+        <button class="btn-play" onclick="saveBook()">SAVE BOOK</button>
+    </div>
+</div>
+
+<div id="game-overlay" class="overlay">
+    <div class="modal">
+        <div class="close-x" onclick="closeAll()">×</div>
+        <div id="game-active">
+            <div class="timer-wrap"><div id="timer-bar"></div></div>
+            <div id="q-content" class="q-text">---</div>
+            <div id="input-ui" class="hidden">
+                <input type="text" id="user-input" placeholder="Type answer..." autocomplete="off">
+                <button class="btn-play" onclick="checkInput()">SUBMIT</button>
+            </div>
+            <div id="choice-ui" class="hidden" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
         </div>
-        <div class="form-group">
-            <label>中文释义</label>
-            <input type="text" id="game-add-meaning" placeholder="例如: 你好">
+        <div id="game-over" class="hidden">
+            <h1>🎉 Mission Done!</h1>
+            <h2 id="final-xp" style="color:var(--primary)">+0 XP</h2>
+            <button class="btn-play" onclick="closeAll()">BACK TO HUB</button>
         </div>
-        <div class="modal-actions">
-            <button class="btn" onclick="closeAddWordModal()">取消</button>
-            <button class="btn btn-primary" onclick="submitGameWord()">添加</button>
+    </div>
+</div>
+
+<div id="settings-overlay" class="overlay">
+    <div class="modal">
+        <div class="close-x" onclick="closeAll()">×</div>
+        <h2 id="settings-title">Game Settings</h2>
+        <div style="background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <span>⏱️ Timer (Seconds):</span>
+            <input type="number" id="game-time-input" style="width: 70px; margin:0;" min="5" value="15" onchange="updateTimeLimit()">
         </div>
+        <button class="btn-play" onclick="closeAll()">SAVE & CLOSE</button>
     </div>
 </div>
 
 <script>
-// ==================== 全局状态 ====================
-let currentUser = { role: 'guest', username: null, isLoggedIn: false };
-let essays = JSON.parse(localStorage.getItem('essays')) || [];
-let currentEssay = null;
+    let totalXP = parseInt(localStorage.getItem('xp')) || 0;
+    let mistakeBank = JSON.parse(localStorage.getItem('mistake_bank')) || [];
+    let vocabBooks = JSON.parse(localStorage.getItem('vocab_books')) || [{ name: "Default", cat: "General", words: ["APPLE", "DOG", "CAT"] }];
+    let gameTimes = JSON.parse(localStorage.getItem('game_times')) || {};
 
-// 游戏数据 - 现在扩展到20个游戏
-const games = [
-    // 原有游戏 (2个)
-    { id: 'match', n: 'Match Up', desc: 'Find and connect the matching vocabulary pairs before time runs out.', difficulty: 'easy', minLevel: 0, theme: 'general' },
-    { id: 'mole', n: 'Whack-a-Mole', desc: 'Grab your hammer! Smash the moles that pop up with the correct words.', difficulty: 'easy', minLevel: 0, theme: 'general' },
-    
-    // 新增游戏 - 基于模板扩展 (18个)
-    // 拼写游戏变体 (2个)
-    { id: 'spell-animals', n: 'Spelling Bee (Animals)', desc: 'Type the correct spelling of animal names before time runs out!', difficulty: 'easy', minLevel: 0, theme: 'animals' },
-    { id: 'spell-fruits', n: 'Spelling Bee (Fruits)', desc: 'Spell the names of delicious fruits correctly!', difficulty: 'easy', minLevel: 0, theme: 'fruits' },
-    
-    // 填空游戏变体 (2个)
-    { id: 'fill-animals', n: 'Fill in the Blanks (Animals)', desc: 'Complete sentences about animals by filling the missing words.', difficulty: 'medium', minLevel: 0, theme: 'animals' },
-    { id: 'fill-vehicles', n: 'Fill in the Blanks (Vehicles)', desc: 'Fill in the missing words in sentences about vehicles.', difficulty: 'medium', minLevel: 0, theme: 'vehicles' },
-    
-    // 单词接龙 (1个)
-    { id: 'wordchain', n: 'Word Chain', desc: 'Make a chain of words that start with the last letter of the previous word!', difficulty: 'hard', minLevel: 0, theme: 'general' },
-    
-    // 听力匹配 (1个)
-    { id: 'audiomatch', n: 'Audio Match', desc: 'Listen and match the word to its pronunciation (simulated).', difficulty: 'medium', minLevel: 0, theme: 'general' },
-    
-    // 单词分类 (2个)
-    { id: 'category-animals', n: 'Category Sort (Animals vs Fruits)', desc: 'Sort words into Animals and Fruits categories.', difficulty: 'easy', minLevel: 0, theme: 'animals_fruits' },
-    { id: 'category-vehicles', n: 'Category Sort (Vehicles vs Colors)', desc: 'Sort words into Vehicles and Colors categories.', difficulty: 'easy', minLevel: 0, theme: 'vehicles_colors' },
-    
-    // 反义词配对 (1个)
-    { id: 'antonym', n: 'Antonym Match', desc: 'Match words with their opposites!', difficulty: 'hard', minLevel: 0, theme: 'general' },
-    
-    // 单词记忆 (3个)
-    { id: 'memory-animals', n: 'Memory Game (Animals)', desc: 'Flip cards to find matching animal word pairs.', difficulty: 'easy', minLevel: 0, theme: 'animals' },
-    { id: 'memory-fruits', n: 'Memory Game (Fruits)', desc: 'Flip cards to find matching fruit word pairs.', difficulty: 'easy', minLevel: 0, theme: 'fruits' },
-    { id: 'memory-colors', n: 'Memory Game (Colors)', desc: 'Flip cards to find matching color word pairs.', difficulty: 'easy', minLevel: 0, theme: 'colors' },
-    
-    // 句子排序 (2个)
-    { id: 'sentencesort-easy', n: 'Sentence Sort (Easy)', desc: 'Rearrange words to form simple sentences.', difficulty: 'medium', minLevel: 0, theme: 'easy' },
-    { id: 'sentencesort-hard', n: 'Sentence Sort (Hard)', desc: 'Rearrange words to form complex sentences.', difficulty: 'hard', minLevel: 0, theme: 'hard' },
-    
-    // 额外2个游戏：打地鼠变体 (2个)
-    { id: 'mole-animals', n: 'Whack-a-Mole (Animals)', desc: 'Smash moles with animal names!', difficulty: 'easy', minLevel: 0, theme: 'animals' },
-    { id: 'mole-fruits', n: 'Whack-a-Mole (Fruits)', desc: 'Smash moles with fruit names!', difficulty: 'easy', minLevel: 0, theme: 'fruits' },
-    
-    // 补充到20个，再加一个拼写变体
-    { id: 'spell-colors', n: 'Spelling Bee (Colors)', desc: 'Spell the names of colors correctly!', difficulty: 'easy', minLevel: 0, theme: 'colors' }
-];
+    let timer, timeLeft, currentQ, currentType, sessionXP = 0;
+    let editingGameId = '';
 
-// 主题词汇库 (按主题分类)
-const themeWords = {
-    animals: [
-        {w: "cat", m: "猫"}, {w: "dog", m: "狗"}, {w: "elephant", m: "大象"}, {w: "tiger", m: "老虎"}, {w: "lion", m: "狮子"},
-        {w: "giraffe", m: "长颈鹿"}, {w: "zebra", m: "斑马"}, {w: "monkey", m: "猴子"}, {w: "bear", m: "熊"}, {w: "rabbit", m: "兔子"}
-    ],
-    fruits: [
-        {w: "apple", m: "苹果"}, {w: "banana", m: "香蕉"}, {w: "orange", m: "橙子"}, {w: "grape", m: "葡萄"}, {w: "strawberry", m: "草莓"},
-        {w: "watermelon", m: "西瓜"}, {w: "pineapple", m: "菠萝"}, {w: "mango", m: "芒果"}, {w: "peach", m: "桃子"}, {w: "pear", m: "梨"}
-    ],
-    vehicles: [
-        {w: "car", m: "汽车"}, {w: "bus", m: "公交车"}, {w: "train", m: "火车"}, {w: "plane", m: "飞机"}, {w: "bicycle", m: "自行车"},
-        {w: "motorcycle", m: "摩托车"}, {w: "truck", m: "卡车"}, {w: "ship", m: "船"}, {w: "helicopter", m: "直升机"}, {w: "subway", m: "地铁"}
-    ],
-    colors: [
-        {w: "red", m: "红色"}, {w: "blue", m: "蓝色"}, {w: "green", m: "绿色"}, {w: "yellow", m: "黄色"}, {w: "black", m: "黑色"},
-        {w: "white", m: "白色"}, {w: "purple", m: "紫色"}, {w: "orange", m: "橙色"}, {w: "pink", m: "粉色"}, {w: "brown", m: "棕色"}
-    ],
-    antonyms: [
-        {w: "big", m: "small"}, {w: "hot", m: "cold"}, {w: "fast", m: "slow"}, {w: "happy", m: "sad"}, {w: "tall", m: "short"},
-        {w: "rich", m: "poor"}, {w: "young", m: "old"}, {w: "thick", m: "thin"}, {w: "heavy", m: "light"}, {w: "bright", m: "dark"}
-    ],
-    sentences: {
-        easy: [
-            "I love to play football",
-            "She reads a book",
-            "The cat chases the mouse",
-            "We eat pizza for dinner",
-            "He drives a car"
-        ],
-        hard: [
-            "Although it was raining, we decided to go for a walk",
-            "The scientist discovered a new planet after years of research",
-            "My grandmother, who lives in the countryside, bakes delicious cookies",
-            "If you study hard, you will pass the exam with flying colors",
-            "The movie that we watched last night was incredibly boring"
-        ]
-    }
-};
-
-// 默认词汇数据（综合）
-let wordData = JSON.parse(localStorage.getItem('game_word_data')) || themeWords.animals.concat(themeWords.fruits).concat(themeWords.vehicles).concat(themeWords.colors);
-
-// 游戏全局变量
-let currentGameID = null;
-let gameScore = 0;
-let gameTimeLeft = 0;
-let gameClock = null;
-let gameActive = false;
-let moleInterval = null;
-
-// ==================== 初始化 ====================
-document.addEventListener('DOMContentLoaded', function() {
-    initHomePage();
-});
-
-// ==================== 首页初始化 ====================
-function initHomePage() {
-    const homeMenu = document.getElementById('home-menu');
-    homeMenu.innerHTML = '';
-    
-    const modules = [
-        {
-            id: 'games',
-            title: '🎮 20 Fun English Games',
-            desc: '20 interactive games with 3 difficulty levels! Practice vocabulary, spelling, and more.',
-            icon: '🎮',
-            color: 'linear-gradient(135deg, var(--brand), var(--accent))',
-            tag: '20 Games • All Levels',
-            action: () => showPage('games-page')
-        },
-        {
-            id: 'writing',
-            title: '📝 Smart Writing Assistant',
-            desc: 'Submit essays, get AI grammar checking, and view teacher feedback!',
-            icon: '📝',
-            color: 'linear-gradient(135deg, var(--purple), var(--pink))',
-            tag: 'Writing Practice',
-            action: () => showPage('writing-page')
-        }
+    const gameConfig = [
+        { id: 'scramble', name: 'Word Scramble', icon: '🌪️' },
+        { id: 'emoji', name: 'Emoji Riddle', icon: '🧩' },
+        { id: 'bee', name: 'Spelling Bee', icon: '🐝' },
+        { id: 'balloon', name: 'Balloon Pop', icon: '🎈' },
+        { id: 'animal', name: 'Animal Sounds', icon: '🦁' },
+        { id: 'odd', name: 'Odd One Out', icon: '🔎' },
+        { id: 'color', name: 'Color Splash', icon: '🎨' },
+        { id: 'space', name: 'Space Quest', icon: '🚀' },
+        { id: 'robot', name: 'Robot Fixer', icon: '🤖' },
+        { id: 'nature', name: 'Nature Match', icon: '🌿' }
     ];
-    
-    modules.forEach(mod => {
-        const card = document.createElement('div');
-        card.className = 'home-card';
-        card.innerHTML = `
-            <div class="home-card-icon" style="background: ${mod.color};">${mod.icon}</div>
-            <div class="home-card-content">
-                <h3 class="home-card-title">${mod.title}</h3>
-                <p class="home-card-desc">${mod.desc}</p>
-                <span class="home-card-tag">${mod.tag}</span>
-            </div>
-        `;
-        card.addEventListener('click', mod.action);
-        homeMenu.appendChild(card);
-    });
-}
 
-// ==================== 页面导航 ====================
-function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
-    
-    const backBtn = document.getElementById('back-btn');
-    const headerTitle = document.getElementById('header-title');
-    
-    if(pageId === 'home-page') {
-        backBtn.style.visibility = 'hidden';
-        headerTitle.innerText = 'Fun English Learning Hub';
-    } else if(pageId === 'games-page') {
-        backBtn.style.visibility = 'visible';
-        headerTitle.innerText = '🎮 20 Fun English Games';
-        initGamesPage();
-    } else if(pageId === 'writing-page') {
-        backBtn.style.visibility = 'visible';
-        headerTitle.innerText = '📝 Smart Writing Assistant';
-        renderWritingPage();
+    function init() {
+        renderBooks();
+        renderMenu();
+        updateStats();
     }
-}
 
-document.getElementById('back-btn').addEventListener('click', function() {
-    showPage('home-page');
-});
-
-// ==================== 游戏页面逻辑 ====================
-function initGamesPage() {
-    const filterBar = document.getElementById('game-filter-bar');
-    filterBar.innerHTML = `
-        <button class="filter-btn active" data-filter="all">All Games</button>
-        <button class="filter-btn easy" data-filter="easy">🟢 Easy</button>
-        <button class="filter-btn medium" data-filter="medium">🟠 Medium</button>
-        <button class="filter-btn hard" data-filter="hard">🔴 Hard</button>
-    `;
-    
-    filterBar.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            renderGamesList(this.dataset.filter);
+    // --- VOCABULARY ---
+    function renderBooks() {
+        const container = document.getElementById('vocab-books');
+        const addBtn = container.lastElementChild;
+        container.innerHTML = '';
+        vocabBooks.forEach((book, idx) => {
+            container.innerHTML += `
+                <div class="book-card">
+                    <span class="book-badge">${book.cat}</span>
+                    <h3 style="margin:0;">${book.name}</h3>
+                    <p style="font-size: 0.8rem; color:#64748b;">${book.words.length} Words</p>
+                    <button class="btn-edit" onclick="deleteBook(${idx})">🗑️ Delete</button>
+                </div>`;
         });
-    });
-
-    renderGamesList('all');
-}
-
-function renderGamesList(filter) {
-    const gamesList = document.getElementById('games-list');
-    gamesList.innerHTML = '';
-    
-    let filteredGames = filter === 'all' 
-        ? games 
-        : games.filter(g => g.difficulty === filter);
-    
-    if (filteredGames.length === 0) {
-        gamesList.innerHTML = `
-            <div style="text-align:center; padding:60px; color:var(--gray); grid-column:1/-1;">
-                <div style="font-size:60px; margin-bottom:20px;">🎮</div>
-                <h3 style="margin-bottom:10px;">No games available</h3>
-                <p>Try selecting a different difficulty level!</p>
-            </div>
-        `;
-        return;
+        container.appendChild(addBtn);
     }
-    
-    filteredGames.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        const badgeClass = `difficulty-${game.difficulty}`;
-        const badgeText = game.difficulty.charAt(0).toUpperCase() + game.difficulty.slice(1);
-        
-        card.innerHTML = `
-            <div class="game-card-img">🎮</div>
-            <div class="game-card-content">
-                <span class="difficulty-badge ${badgeClass}">${badgeText}</span>
-                <h3 class="game-card-title">${game.n}</h3>
-                <p class="game-card-desc">${game.desc}</p>
-            </div>
-        `;
-        
-        card.addEventListener('click', function() {
-            startGame(game.id);
+
+    function openBookEditor() { 
+        document.getElementById('book-name').value = '';
+        document.getElementById('book-words').value = '';
+        document.getElementById('book-modal').style.display = 'flex'; 
+    }
+
+    function saveBook() {
+        const name = document.getElementById('book-name').value;
+        const cat = document.getElementById('book-category').value;
+        const words = document.getElementById('book-words').value.split(/[,\n]/).map(w => w.trim().toUpperCase()).filter(w => w.length > 0);
+        if(!name || words.length === 0) return alert("Please add a name and words.");
+        vocabBooks.push({ name, cat, words });
+        localStorage.setItem('vocab_books', JSON.stringify(vocabBooks));
+        closeAll(); renderBooks();
+    }
+
+    function deleteBook(idx) {
+        vocabBooks.splice(idx, 1);
+        localStorage.setItem('vocab_books', JSON.stringify(vocabBooks));
+        renderBooks();
+    }
+
+    // --- GAMES ---
+    function renderMenu() {
+        const menu = document.getElementById('menu'); menu.innerHTML = '';
+        gameConfig.forEach(g => {
+            menu.innerHTML += `
+                <div class="game-card">
+                    <span class="game-icon">${g.icon}</span>
+                    <h3>${g.name}</h3>
+                    <button class="btn-play" onclick="startGame('${g.id}')">PLAY</button>
+                    <button class="btn-edit" onclick="openSettings('${g.id}')">⚙️ SETTINGS</button>
+                </div>`;
         });
+    }
+
+    function startGame(type) {
+        const allWords = vocabBooks.flatMap(b => b.words);
+        if(allWords.length === 0) return alert("Please create a vocabulary book first!");
         
-        gamesList.appendChild(card);
-    });
-}
-
-// ==================== 游戏核心逻辑 ====================
-function startGame(gameID) {
-    currentGameID = gameID;
-    gameScore = 0;
-    gameTimeLeft = 60;
-    gameActive = true;
-    
-    document.getElementById('games-page').classList.remove('active');
-    document.getElementById('game-stage').style.display = 'flex';
-    
-    document.getElementById('game-score').innerText = gameScore;
-    document.getElementById('game-timer').innerText = gameTimeLeft;
-    
-    const gameInfo = games.find(g => g.id === gameID);
-    document.getElementById('game-name').innerText = gameInfo ? gameInfo.n : "Game";
-    document.getElementById('game-hint').innerText = gameInfo ? gameInfo.desc : "";
-    
-    clearInterval(gameClock);
-    clearInterval(moleInterval);
-    
-    gameClock = setInterval(() => {
-        if(!gameActive) return;
-        gameTimeLeft--;
-        document.getElementById('game-timer').innerText = gameTimeLeft;
-        if(gameTimeLeft <= 0) {
-            endGame("Time's Up!");
-        }
-    }, 1000);
-
-    const viewport = document.getElementById('game-viewport');
-    viewport.innerHTML = '';
-    
-    // 根据游戏ID调用对应的初始化函数
-    if (gameID === 'match') {
-        initMatchGame(viewport, 'general');
-    } else if (gameID === 'mole' || gameID === 'mole-animals' || gameID === 'mole-fruits') {
-        // 打地鼠游戏变体，根据主题选择词汇
-        let theme = 'general';
-        if (gameID === 'mole-animals') theme = 'animals';
-        else if (gameID === 'mole-fruits') theme = 'fruits';
-        initMoleGame(viewport, theme);
-    } else if (gameID.startsWith('spell-')) {
-        // 拼写游戏变体
-        let theme = gameID.replace('spell-', '');
-        initSpellGame(viewport, theme);
-    } else if (gameID.startsWith('fill-')) {
-        // 填空游戏变体
-        let theme = gameID.replace('fill-', '');
-        initFillBlankGame(viewport, theme);
-    } else if (gameID === 'wordchain') {
-        initWordChainGame(viewport);
-    } else if (gameID === 'audiomatch') {
-        initAudioMatchGame(viewport);
-    } else if (gameID.startsWith('category-')) {
-        let theme = gameID.replace('category-', '');
-        initCategoryGame(viewport, theme);
-    } else if (gameID === 'antonym') {
-        initAntonymGame(viewport);
-    } else if (gameID.startsWith('memory-')) {
-        let theme = gameID.replace('memory-', '');
-        initMemoryGame(viewport, theme);
-    } else if (gameID.startsWith('sentencesort-')) {
-        let level = gameID.replace('sentencesort-', '');
-        initSentenceSortGame(viewport, level);
-    } else {
-        viewport.innerHTML = `
-            <div style="text-align:center; padding:20px;">
-                <h2>🎮 Game Under Construction</h2>
-                <p style="margin-top:20px; color:var(--gray);">This game is coming soon!</p>
-                <button class="btn btn-primary" style="margin-top:20px;" onclick="exitGame()">Back to Games</button>
-            </div>
-        `;
-    }
-}
-
-function exitGame() {
-    gameActive = false;
-    clearInterval(gameClock);
-    clearInterval(moleInterval);
-    document.getElementById('game-stage').style.display = 'none';
-    showPage('games-page');
-}
-
-function endGame(message) {
-    gameActive = false;
-    clearInterval(gameClock);
-    clearInterval(moleInterval);
-    
-    const viewport = document.getElementById('game-viewport');
-    viewport.innerHTML = `
-        <div style="text-align:center; padding:20px; max-width:500px; margin:0 auto;">
-            <h1 style="font-size: 48px; margin-bottom: 10px; color:var(--brand);">${message}</h1>
-            <h2 style="color: var(--gray); margin-bottom: 30px;">Final Score: <span style="color:var(--success);">${gameScore}</span></h2>
-            <button class="btn btn-primary" onclick="startGame(currentGameID)" style="padding: 12px 30px; font-size: 18px; margin-bottom:10px;">🔄 Play Again</button>
-            <br>
-            <button class="btn" onclick="exitGame()" style="padding: 12px 30px; font-size: 18px;">← Back to Games</button>
-        </div>
-    `;
-}
-
-// ==================== 具体游戏实现 ====================
-
-/**
- * 配对游戏初始化 (支持主题)
- */
-function initMatchGame(viewport, theme = 'general') {
-    const container = document.createElement('div');
-    container.className = 'match-box';
-    
-    const leftColumn = document.createElement('div');
-    leftColumn.className = 'col';
-    const rightColumn = document.createElement('div');
-    rightColumn.className = 'col';
-    
-    let selectedLeft = null;
-    let selectedRight = null;
-    let matchedCount = 0;
-
-    // 根据主题选择词汇
-    let words = [];
-    if (theme === 'general') {
-        words = [...wordData].slice(0, 6); // 取前6个
-    } else {
-        words = themeWords[theme] || themeWords.animals;
-    }
-    words = words.sort(() => Math.random() - 0.5);
-    const shuffledWords = [...words].sort(() => Math.random() - 0.5);
-    const shuffledMatches = [...words].sort(() => Math.random() - 0.5);
-
-    function checkMatch() {
-        if (selectedLeft && selectedRight) {
-            const leftWordId = selectedLeft.dataset.id;
-            const rightWordId = selectedRight.dataset.id;
-            
-            if (leftWordId === rightWordId) {
-                selectedLeft.classList.add('correct');
-                selectedRight.classList.add('correct');
-                selectedLeft.removeEventListener('click', handleLeftClick);
-                selectedRight.removeEventListener('click', handleRightClick);
-                
-                gameScore += 10;
-                document.getElementById('game-score').innerText = gameScore;
-                
-                matchedCount++;
-                if (matchedCount === words.length) {
-                   endGame("You Win! 🎉");
-                }
-            }
-            
-            selectedLeft.classList.remove('selected');
-            selectedRight.classList.remove('selected');
-            selectedLeft = null;
-            selectedRight = null;
-        }
+        currentType = type; sessionXP = 0;
+        document.getElementById('game-overlay').style.display = 'flex';
+        document.getElementById('game-active').classList.remove('hidden');
+        document.getElementById('game-over').classList.add('hidden');
+        nextQ();
     }
 
-    function handleLeftClick() {
-        if (!gameActive) return;
-        if (selectedLeft) selectedLeft.classList.remove('selected');
-        selectedLeft = this;
-        this.classList.add('selected');
-        checkMatch();
-    }
-
-    function handleRightClick() {
-        if (!gameActive) return;
-        if (selectedRight) selectedRight.classList.remove('selected');
-        selectedRight = this;
-        this.classList.add('selected');
-        checkMatch();
-    }
-
-    shuffledWords.forEach((item, index) => {
-        const itemElement = document.createElement('div');
-        itemElement.className = 'item';
-        itemElement.innerText = item.w;
-        itemElement.dataset.id = index.toString();
-        itemElement.addEventListener('click', handleLeftClick);
-        leftColumn.appendChild(itemElement);
-    });
-
-    shuffledMatches.forEach((item, index) => {
-        const itemElement = document.createElement('div');
-        itemElement.className = 'item';
-        itemElement.innerText = item.m;
-        itemElement.dataset.id = index.toString();
-        itemElement.addEventListener('click', handleRightClick);
-        rightColumn.appendChild(itemElement);
-    });
-
-    container.appendChild(leftColumn);
-    container.appendChild(rightColumn);
-    viewport.appendChild(container);
-}
-
-/**
- * 打地鼠游戏初始化 (支持主题)
- */
-function initMoleGame(viewport, theme = 'general') {
-    const grid = document.createElement('div');
-    grid.className = 'mole-grid';
-    
-    let words = [];
-    if (theme === 'general') {
-        words = wordData.map(w => w.w).slice(0, 10);
-    } else {
-        words = (themeWords[theme] || themeWords.animals).map(w => w.w);
-    }
-    
-    for (let i = 0; i < 9; i++) {
-        const hole = document.createElement('div');
-        hole.className = 'hole';
-        const mole = document.createElement('div');
-        mole.className = 'mole';
-        mole.innerText = '?';
-        mole.dataset.istarget = 'false';
+    function nextQ() {
+        const allWords = vocabBooks.flatMap(b => b.words);
+        const word = allWords[Math.floor(Math.random() * allWords.length)];
         
-        mole.addEventListener('click', function() {
-            if (!gameActive) return;
-            if (this.classList.contains('up') && this.dataset.istarget === 'true') {
-                gameScore += 10;
-                document.getElementById('game-score').innerText = gameScore;
-                this.classList.remove('up');
-                this.dataset.istarget = 'false';
-                setTimeout(popRandomMole, 300);
-            }
-        });
-        
-        hole.appendChild(mole);
-        grid.appendChild(hole);
-    }
-    
-    viewport.appendChild(grid);
+        currentQ = { a: word };
 
-    const moles = grid.querySelectorAll('.mole');
-
-    function hideMole(mole) {
-        mole.classList.remove('up');
-        mole.dataset.istarget = 'false';
-    }
-
-    function popRandomMole() {
-        if (!gameActive) return;
-        moles.forEach(hideMole);
-        const randomHoleIndex = Math.floor(Math.random() * moles.length);
-        const randomWordIndex = Math.floor(Math.random() * words.length);
-        const targetMole = moles[randomHoleIndex];
-        targetMole.innerText = words[randomWordIndex];
-        targetMole.dataset.istarget = 'true';
-        targetMole.classList.add('up');
-        
-        const hideTime = 1000 + Math.random() * 2000;
-        setTimeout(() => {
-            if (gameActive && targetMole.classList.contains('up')) {
-                hideMole(targetMole);
-                popRandomMole();
-            }
-        }, hideTime);
-    }
-
-    moleInterval = setInterval(popRandomMole, 2000);
-    popRandomMole();
-}
-
-// ---------- 新增游戏模板实现 ----------
-
-/**
- * 拼写游戏 (Spelling Bee)
- */
-function initSpellGame(viewport, theme) {
-    let words = (themeWords[theme] || themeWords.animals).map(w => w.w);
-    let currentWord = null;
-    
-    viewport.innerHTML = `
-        <div style="width:100%; max-width:600px; margin:0 auto; text-align:center;">
-            <h2 style="margin-bottom:30px; color:var(--brand);" id="spell-word">_______</h2>
-            <input type="text" id="spell-input" placeholder="Type the word here..." style="padding:15px; width:80%; border:2px solid #e2e8f0; border-radius:8px; font-size:18px; margin-bottom:20px;">
-            <button class="btn btn-primary" id="spell-submit">Check Answer</button>
-            <div id="spell-feedback" style="margin-top:20px; font-weight:bold; font-size:18px;"></div>
-        </div>
-    `;
-
-    const input = document.getElementById('spell-input');
-    const wordDisplay = document.getElementById('spell-word');
-    const feedback = document.getElementById('spell-feedback');
-    const submitBtn = document.getElementById('spell-submit');
-
-    function getRandomWord() {
-        const randomIndex = Math.floor(Math.random() * words.length);
-        currentWord = words[randomIndex];
-        wordDisplay.innerText = currentWord;
-        input.value = '';
-        feedback.innerText = '';
-        input.focus();
-    }
-
-    function checkAnswer() {
-        if (!gameActive) return;
-        const userAnswer = input.value.trim().toLowerCase();
-        const correctAnswer = currentWord.toLowerCase();
-
-        if (userAnswer === correctAnswer) {
-            feedback.innerText = '✅ Correct!';
-            feedback.style.color = 'var(--success)';
-            gameScore += 15;
-            document.getElementById('game-score').innerText = gameScore;
-            setTimeout(getRandomWord, 1000);
+        // Logic for different game types
+        if (['scramble', 'space'].includes(currentType)) {
+            currentQ.q = word.split('').sort(() => Math.random() - 0.5).join('-');
+            showInputUI();
         } else {
-            feedback.innerText = `❌ Wrong! Correct: ${currentWord}`;
-            feedback.style.color = 'var(--danger)';
+            currentQ.q = currentType === 'emoji' ? "Find the Word" : word;
+            currentQ.wrong = "RANDOM_" + Math.floor(Math.random()*100); 
+            showChoiceUI();
         }
+        startTimer();
     }
 
-    submitBtn.addEventListener('click', checkAnswer);
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkAnswer();
-    });
-
-    getRandomWord();
-}
-
-/**
- * 填空游戏 (Fill in the Blanks)
- */
-function initFillBlankGame(viewport, theme) {
-    let sentences = [];
-    if (theme === 'animals') {
-        sentences = [
-            { sentence: 'A ____ is a loyal animal.', answer: 'dog' },
-            { sentence: 'Cats love to drink ____.', answer: 'milk' },
-            { sentence: 'The ____ is the king of the jungle.', answer: 'lion' }
-        ];
-    } else if (theme === 'vehicles') {
-        sentences = [
-            { sentence: 'We drive a ____ to work.', answer: 'car' },
-            { sentence: 'The ____ flies in the sky.', answer: 'plane' },
-            { sentence: 'A ____ travels on tracks.', answer: 'train' }
-        ];
-    } else {
-        sentences = [
-            { sentence: 'I eat an ____ every day.', answer: 'apple' },
-            { sentence: 'We drive a ____ to school.', answer: 'car' },
-            { sentence: 'A ____ is a loyal animal.', answer: 'dog' }
-        ];
-    }
-
-    viewport.innerHTML = `
-        <div style="width:100%; max-width:700px; margin:0 auto; padding:20px;">
-            <div style="font-size:20px; margin-bottom:30px; line-height:1.8;" id="blank-sentence"></div>
-            <input type="text" id="blank-input" placeholder="Type the missing word..." style="padding:12px; width:70%; border:2px solid #e2e8f0; border-radius:8px; font-size:16px;">
-            <button class="btn btn-primary" id="blank-submit" style="margin-left:10px;">Check</button>
-            <div id="blank-feedback" style="margin-top:20px; font-weight:bold;"></div>
-            <button class="btn btn-small" id="blank-next" style="margin-top:20px; display:none;">Next Sentence</button>
-        </div>
-    `;
-
-    const sentenceDisplay = document.getElementById('blank-sentence');
-    const input = document.getElementById('blank-input');
-    const feedback = document.getElementById('blank-feedback');
-    const submitBtn = document.getElementById('blank-submit');
-    const nextBtn = document.getElementById('blank-next');
-    let currentSentence = null;
-
-    function loadRandomSentence() {
-        const randomIdx = Math.floor(Math.random() * sentences.length);
-        currentSentence = sentences[randomIdx];
-        sentenceDisplay.innerText = currentSentence.sentence;
-        input.value = '';
-        feedback.innerText = '';
-        nextBtn.style.display = 'none';
-        input.focus();
-    }
-
-    function checkAnswer() {
-        if (!gameActive) return;
-        const userAns = input.value.trim().toLowerCase();
-        const correctAns = currentSentence.answer.toLowerCase();
-
-        if (userAns === correctAns) {
-            feedback.innerText = '✅ Correct!';
-            feedback.style.color = 'var(--success)';
-            gameScore += 20;
-            document.getElementById('game-score').innerText = gameScore;
-            nextBtn.style.display = 'inline-block';
-        } else {
-            feedback.innerText = `❌ Oops! Correct answer: ${currentSentence.answer}`;
-            feedback.style.color = 'var(--danger)';
-        }
-    }
-
-    submitBtn.addEventListener('click', checkAnswer);
-    nextBtn.addEventListener('click', loadRandomSentence);
-    input.addEventListener('keypress', (e) => e.key === 'Enter' && checkAnswer());
-
-    loadRandomSentence();
-}
-
-/**
- * 单词接龙 (Word Chain)
- */
-function initWordChainGame(viewport) {
-    let usedWords = [];
-    let lastLetter = '';
-    const allWords = wordData.map(w => w.w.toLowerCase());
-
-    viewport.innerHTML = `
-        <div style="width:100%; max-width:600px; margin:0 auto; text-align:center;">
-            <h3 style="margin-bottom:15px;">Last letter: <span id="last-letter" style="color:var(--brand); font-size:24px;">?</span></h3>
-            <p style="margin-bottom:20px; color:var(--gray);">Used words: <span id="used-words">None</span></p>
-            <input type="text" id="chain-input" placeholder="Type a word..." style="padding:12px; width:70%; border-radius:8px; border:2px solid #e2e8f0;">
-            <button class="btn btn-primary" id="chain-submit" style="margin-left:10px;">Submit</button>
-            <div id="chain-feedback" style="margin-top:20px; font-weight:bold;"></div>
-        </div>
-    `;
-
-    const lastLetterDisplay = document.getElementById('last-letter');
-    const usedWordsDisplay = document.getElementById('used-words');
-    const input = document.getElementById('chain-input');
-    const submitBtn = document.getElementById('chain-submit');
-    const feedback = document.getElementById('chain-feedback');
-
-    function initChain() {
-        usedWords = [];
-        const firstWord = allWords[Math.floor(Math.random() * allWords.length)];
-        usedWords.push(firstWord);
-        lastLetter = firstWord.slice(-1).toLowerCase();
-        updateDisplay();
-    }
-
-    function updateDisplay() {
-        lastLetterDisplay.innerText = lastLetter.toUpperCase();
-        usedWordsDisplay.innerText = usedWords.join(', ');
-        input.value = '';
-        feedback.innerText = '';
-    }
-
-    function checkWord() {
-        if (!gameActive) return;
-        const userWord = input.value.trim().toLowerCase();
-        if (!userWord) return;
-
-        if (usedWords.some(w => w.toLowerCase() === userWord)) {
-            feedback.innerText = '❌ You already used this word!';
-            feedback.style.color = 'var(--danger)';
-            return;
-        }
-
-        if (userWord[0] !== lastLetter) {
-            feedback.innerText = `❌ Must start with "${lastLetter.toUpperCase()}"!`;
-            feedback.style.color = 'var(--danger)';
-            return;
-        }
-
-        usedWords.push(userWord);
-        lastLetter = userWord.slice(-1).toLowerCase();
-        feedback.innerText = '✅ Great!';
-        feedback.style.color = 'var(--success)';
-        gameScore += 25;
-        document.getElementById('game-score').innerText = gameScore;
-        updateDisplay();
-    }
-
-    submitBtn.addEventListener('click', checkWord);
-    input.addEventListener('keypress', (e) => e.key === 'Enter' && checkWord());
-
-    initChain();
-}
-
-/**
- * 听力匹配 (模拟)
- */
-function initAudioMatchGame(viewport) {
-    const words = wordData.slice(0, 6).map(w => w.w);
-    let targetWord = null;
-
-    viewport.innerHTML = `
-        <div style="width:100%; max-width:700px; margin:0 auto;">
-            <div style="text-align:center; margin-bottom:30px;">
-                <button class="btn btn-primary" id="play-audio" style="padding:12px 30px;">🔊 Play Word</button>
-                <p style="margin-top:10px; color:var(--gray);">Listen and select the correct word!</p>
-            </div>
-            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:15px; max-width:500px; margin:0 auto;" id="audio-options"></div>
-            <div id="audio-feedback" style="margin-top:20px; text-align:center; font-weight:bold; font-size:18px;"></div>
-        </div>
-    `;
-
-    const playBtn = document.getElementById('play-audio');
-    const optionsContainer = document.getElementById('audio-options');
-    const feedback = document.getElementById('audio-feedback');
-
-    function generateOptions() {
-        targetWord = words[Math.floor(Math.random() * words.length)];
-        const options = [targetWord];
-        while (options.length < 4) {
-            const randomWord = words[Math.floor(Math.random() * words.length)];
-            if (!options.includes(randomWord)) options.push(randomWord);
-        }
-        options.sort(() => Math.random() - 0.5);
-        optionsContainer.innerHTML = '';
-        options.forEach(word => {
-            const btn = document.createElement('button');
-            btn.className = 'btn';
-            btn.innerText = word;
-            btn.style.padding = '15px';
-            btn.addEventListener('click', () => checkAudioAnswer(word));
-            optionsContainer.appendChild(btn);
-        });
-        feedback.innerText = '';
-    }
-
-    function playAudio() {
-        if (!gameActive) return;
-        alert(`🔊 Playing pronunciation for: ${targetWord}`);
-    }
-
-    function checkAudioAnswer(selectedWord) {
-        if (!gameActive) return;
-        if (selectedWord === targetWord) {
-            feedback.innerText = '✅ Correct!';
-            feedback.style.color = 'var(--success)';
-            gameScore += 20;
-            document.getElementById('game-score').innerText = gameScore;
-            setTimeout(generateOptions, 1500);
-        } else {
-            feedback.innerText = `❌ Wrong! Correct: ${targetWord}`;
-            feedback.style.color = 'var(--danger)';
-        }
-    }
-
-    playBtn.addEventListener('click', playAudio);
-    generateOptions();
-}
-
-/**
- * 单词分类 (Category Sort)
- */
-function initCategoryGame(viewport, theme) {
-    let categories, words;
-    if (theme === 'animals_fruits') {
-        categories = ['Animals', 'Fruits'];
-        words = [
-            ...themeWords.animals.map(w => ({ word: w.w, category: 'Animals' })),
-            ...themeWords.fruits.map(w => ({ word: w.w, category: 'Fruits' }))
-        ];
-    } else if (theme === 'vehicles_colors') {
-        categories = ['Vehicles', 'Colors'];
-        words = [
-            ...themeWords.vehicles.map(w => ({ word: w.w, category: 'Vehicles' })),
-            ...themeWords.colors.map(w => ({ word: w.w, category: 'Colors' }))
-        ];
-    } else {
-        categories = ['Animals', 'Fruits'];
-        words = [
-            ...themeWords.animals.map(w => ({ word: w.w, category: 'Animals' })),
-            ...themeWords.fruits.map(w => ({ word: w.w, category: 'Fruits' }))
-        ];
-    }
-
-    // 打乱单词
-    words.sort(() => Math.random() - 0.5);
-
-    viewport.innerHTML = `
-        <div style="width:100%; max-width:800px; margin:0 auto; text-align:center;">
-            <h3>Sort the words into correct categories!</h3>
-            <div style="display:flex; gap:20px; margin:30px 0; flex-wrap:wrap; justify-content:center;">
-                ${categories.map(cat => `
-                    <div class="category-box" data-category="${cat}" style="border:2px solid #e2e8f0; padding:20px; border-radius:10px; width:200px; min-height:200px;">
-                        <h4>${cat}</h4>
-                        <div id="cat-${cat}" style="margin-top:10px;"></div>
-                    </div>
-                `).join('')}
-            </div>
-            <div id="word-pool" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; justify-content:center;"></div>
-            <button class="btn btn-primary" id="check-category" style="margin-top:20px;">Check Answers</button>
-            <div id="category-feedback" style="margin-top:20px; font-weight:bold;"></div>
-        </div>
-    `;
-
-    const wordPool = document.getElementById('word-pool');
-    const checkBtn = document.getElementById('check-category');
-    const feedback = document.getElementById('category-feedback');
-
-    // 创建单词按钮
-    words.forEach((item, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn';
-        btn.innerText = item.word;
-        btn.dataset.category = item.category;
-        btn.dataset.index = index;
-        btn.style.margin = '5px';
-        btn.addEventListener('click', function() {
-            if (!gameActive) return;
-            this.style.display = 'none';
-            const catDiv = document.getElementById(`cat-${item.category}`);
-            const wordChip = document.createElement('span');
-            wordChip.innerText = item.word + ' ';
-            wordChip.style.backgroundColor = '#e2e8f0';
-            wordChip.style.padding = '2px 5px';
-            wordChip.style.margin = '2px';
-            wordChip.style.borderRadius = '4px';
-            catDiv.appendChild(wordChip);
-        });
-        wordPool.appendChild(btn);
-    });
-
-    checkBtn.addEventListener('click', function() {
-        const remaining = wordPool.querySelectorAll('button[style*="display: none"]').length;
-        if (remaining === words.length) {
-            feedback.innerText = '✅ Great job! All words sorted correctly!';
-            feedback.style.color = 'var(--success)';
-            gameScore += 30;
-            document.getElementById('game-score').innerText = gameScore;
-        } else {
-            feedback.innerText = '❌ Keep sorting!';
-            feedback.style.color = 'var(--danger)';
-        }
-    });
-}
-
-/**
- * 反义词配对
- */
-function initAntonymGame(viewport) {
-    const pairs = themeWords.antonyms;
-    const words = pairs.map(p => p.w);
-    const opposites = pairs.map(p => p.m);
-    const shuffledWords = [...words].sort(() => Math.random() - 0.5);
-    const shuffledOpposites = [...opposites].sort(() => Math.random() - 0.5);
-
-    const container = document.createElement('div');
-    container.className = 'match-box';
-    
-    const leftColumn = document.createElement('div');
-    leftColumn.className = 'col';
-    const rightColumn = document.createElement('div');
-    rightColumn.className = 'col';
-    
-    let selectedLeft = null;
-    let selectedRight = null;
-    let matchedCount = 0;
-
-    function checkMatch() {
-        if (selectedLeft && selectedRight) {
-            const leftWord = selectedLeft.innerText;
-            const rightWord = selectedRight.innerText;
-            const correctPair = pairs.find(p => p.w === leftWord && p.m === rightWord);
-            
-            if (correctPair) {
-                selectedLeft.classList.add('correct');
-                selectedRight.classList.add('correct');
-                selectedLeft.removeEventListener('click', handleLeftClick);
-                selectedRight.removeEventListener('click', handleRightClick);
-                
-                gameScore += 20;
-                document.getElementById('game-score').innerText = gameScore;
-                
-                matchedCount++;
-                if (matchedCount === pairs.length) {
-                   endGame("You Win! 🎉");
-                }
+    function startTimer() {
+        clearInterval(timer); timeLeft = 100;
+        const limit = gameTimes[currentType] || 15;
+        const step = 100 / (limit * 10);
+        timer = setInterval(() => {
+            timeLeft -= step;
+            document.getElementById('timer-bar').style.width = timeLeft + "%";
+            if(timeLeft <= 0) {
+                clearInterval(timer);
+                document.getElementById('game-active').classList.add('hidden');
+                document.getElementById('game-over').classList.remove('hidden');
+                document.getElementById('final-xp').innerText = "+" + sessionXP + " XP";
             }
-            
-            selectedLeft.classList.remove('selected');
-            selectedRight.classList.remove('selected');
-            selectedLeft = null;
-            selectedRight = null;
-        }
+        }, 100);
     }
 
-    function handleLeftClick() {
-        if (!gameActive) return;
-        if (selectedLeft) selectedLeft.classList.remove('selected');
-        selectedLeft = this;
-        this.classList.add('selected');
-        checkMatch();
-    }
-
-    function handleRightClick() {
-        if (!gameActive) return;
-        if (selectedRight) selectedRight.classList.remove('selected');
-        selectedRight = this;
-        this.classList.add('selected');
-        checkMatch();
-    }
-
-    shuffledWords.forEach(word => {
-        const item = document.createElement('div');
-        item.className = 'item';
-        item.innerText = word;
-        item.addEventListener('click', handleLeftClick);
-        leftColumn.appendChild(item);
-    });
-
-    shuffledOpposites.forEach(opp => {
-        const item = document.createElement('div');
-        item.className = 'item';
-        item.innerText = opp;
-        item.addEventListener('click', handleRightClick);
-        rightColumn.appendChild(item);
-    });
-
-    container.appendChild(leftColumn);
-    container.appendChild(rightColumn);
-    viewport.appendChild(container);
-}
-
-/**
- * 单词记忆 (Memory Game)
- */
-function initMemoryGame(viewport, theme) {
-    let words = (themeWords[theme] || themeWords.animals).slice(0, 6).map(w => w.w);
-    let cards = [...words, ...words];
-    cards.sort(() => Math.random() - 0.5);
-
-    viewport.innerHTML = `
-        <div style="text-align:center; max-width:600px; margin:0 auto;">
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;" id="memory-grid"></div>
-            <div id="memory-feedback" style="margin-top:20px; font-size:18px;"></div>
-        </div>
-    `;
-
-    const grid = document.getElementById('memory-grid');
-    const feedback = document.getElementById('memory-feedback');
-    let flippedCards = [];
-    let lockBoard = false;
-    let matchedPairs = 0;
-
-    cards.forEach((word, index) => {
-        const card = document.createElement('div');
-        card.className = 'memory-card';
-        card.dataset.word = word;
-        card.dataset.index = index;
-        card.style.width = '100%';
-        card.style.height = '80px';
-        card.style.backgroundColor = '#e2e8f0';
-        card.style.borderRadius = '8px';
-        card.style.display = 'flex';
-        card.style.alignItems = 'center';
-        card.style.justifyContent = 'center';
-        card.style.fontSize = '20px';
-        card.style.cursor = 'pointer';
-        card.style.transition = '0.2s';
-        card.innerText = '?';
-
-        card.addEventListener('click', function() {
-            if (lockBoard || this.classList.contains('matched') || flippedCards.includes(this)) return;
-            this.innerText = this.dataset.word;
-            this.style.backgroundColor = '#fff';
-            flippedCards.push(this);
-
-            if (flippedCards.length === 2) {
-                lockBoard = true;
-                const card1 = flippedCards[0];
-                const card2 = flippedCards[1];
-
-                if (card1.dataset.word === card2.dataset.word) {
-                    card1.classList.add('matched');
-                    card2.classList.add('matched');
-                    matchedPairs++;
-                    gameScore += 20;
-                    document.getElementById('game-score').innerText = gameScore;
-                    feedback.innerText = '✅ Match!';
-                    feedback.style.color = 'var(--success)';
-
-                    if (matchedPairs === words.length) {
-                        endGame("You Win! 🎉");
-                    }
-
-                    flippedCards = [];
-                    lockBoard = false;
-                } else {
-                    feedback.innerText = '❌ Try again';
-                    feedback.style.color = 'var(--danger)';
-                    setTimeout(() => {
-                        card1.innerText = '?';
-                        card2.innerText = '?';
-                        card1.style.backgroundColor = '#e2e8f0';
-                        card2.style.backgroundColor = '#e2e8f0';
-                        flippedCards = [];
-                        lockBoard = false;
-                    }, 1000);
-                }
-            }
-        });
-
-        grid.appendChild(card);
-    });
-}
-
-/**
- * 句子排序 (Sentence Sort)
- */
-function initSentenceSortGame(viewport, level) {
-    const sentences = level === 'hard' ? themeWords.sentences.hard : themeWords.sentences.easy;
-    let currentSentence = sentences[Math.floor(Math.random() * sentences.length)];
-    let words = currentSentence.split(' ');
-    words.sort(() => Math.random() - 0.5);
-
-    viewport.innerHTML = `
-        <div style="width:100%; max-width:600px; margin:0 auto; text-align:center;">
-            <h3>Rearrange the words to form a correct sentence</h3>
-            <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:30px 0;" id="word-bank"></div>
-            <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; min-height:50px; border:2px dashed #e2e8f0; padding:20px; border-radius:8px;" id="sentence-area"></div>
-            <button class="btn btn-primary" id="check-sentence" style="margin-top:20px;">Check</button>
-            <div id="sentence-feedback" style="margin-top:20px; font-weight:bold;"></div>
-        </div>
-    `;
-
-    const wordBank = document.getElementById('word-bank');
-    const sentenceArea = document.getElementById('sentence-area');
-    const checkBtn = document.getElementById('check-sentence');
-    const feedback = document.getElementById('sentence-feedback');
-
-    words.forEach((word, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'btn';
-        btn.innerText = word;
-        btn.dataset.word = word;
-        btn.dataset.index = index;
-        btn.addEventListener('click', function() {
-            if (!gameActive) return;
-            this.remove();
-            const wordChip = document.createElement('span');
-            wordChip.innerText = word + ' ';
-            wordChip.style.backgroundColor = '#e2e8f0';
-            wordChip.style.padding = '5px 10px';
-            wordChip.style.borderRadius = '5px';
-            wordChip.style.margin = '5px';
-            wordChip.style.cursor = 'pointer';
-            wordChip.addEventListener('click', function() {
-                this.remove();
-                const newBtn = document.createElement('button');
-                newBtn.className = 'btn';
-                newBtn.innerText = word;
-                newBtn.dataset.word = word;
-                newBtn.addEventListener('click', arguments.callee);
-                wordBank.appendChild(newBtn);
-            });
-            sentenceArea.appendChild(wordChip);
-        });
-        wordBank.appendChild(btn);
-    });
-
-    checkBtn.addEventListener('click', function() {
-        const arranged = [];
-        sentenceArea.querySelectorAll('span').forEach(span => {
-            arranged.push(span.innerText.trim());
-        });
-        const userSentence = arranged.join(' ');
-        if (userSentence.toLowerCase() === currentSentence.toLowerCase()) {
-            feedback.innerText = '✅ Correct!';
-            feedback.style.color = 'var(--success)';
-            gameScore += 30;
-            document.getElementById('game-score').innerText = gameScore;
-            setTimeout(() => {
-                if (gameActive) {
-                    currentSentence = sentences[Math.floor(Math.random() * sentences.length)];
-                    words = currentSentence.split(' ');
-                    words.sort(() => Math.random() - 0.5);
-                    wordBank.innerHTML = '';
-                    words.forEach((word, idx) => {
-                        const btn = document.createElement('button');
-                        btn.className = 'btn';
-                        btn.innerText = word;
-                        btn.dataset.word = word;
-                        btn.addEventListener('click', function() {
-                            this.remove();
-                            const wordChip = document.createElement('span');
-                            wordChip.innerText = word + ' ';
-                            wordChip.style.backgroundColor = '#e2e8f0';
-                            wordChip.style.padding = '5px 10px';
-                            wordChip.style.borderRadius = '5px';
-                            wordChip.style.margin = '5px';
-                            wordChip.style.cursor = 'pointer';
-                            wordChip.addEventListener('click', function() {
-                                this.remove();
-                                const newBtn = document.createElement('button');
-                                newBtn.className = 'btn';
-                                newBtn.innerText = word;
-                                newBtn.addEventListener('click', arguments.callee);
-                                wordBank.appendChild(newBtn);
-                            });
-                            sentenceArea.appendChild(wordChip);
-                        });
-                        wordBank.appendChild(btn);
-                    });
-                    sentenceArea.innerHTML = '';
-                    feedback.innerText = '';
-                }
-            }, 1500);
+    function validate(ans) {
+        if(ans.toUpperCase().trim() === currentQ.a) {
+            sessionXP += 50; totalXP += 50; localStorage.setItem('xp', totalXP);
+            updateStats(); nextQ();
         } else {
-            feedback.innerText = '❌ Not correct, try again!';
-            feedback.style.color = 'var(--danger)';
-        }
-    });
-}
-
-// ==================== 自定义添加单词功能 (游戏内) ====================
-function openAddWordModal() {
-    document.getElementById('modal-add-word-game').classList.add('active');
-}
-
-function closeAddWordModal() {
-    document.getElementById('modal-add-word-game').classList.remove('active');
-    document.getElementById('game-add-word').value = '';
-    document.getElementById('game-add-meaning').value = '';
-}
-
-function submitGameWord() {
-    const word = document.getElementById('game-add-word').value.trim();
-    const meaning = document.getElementById('game-add-meaning').value.trim();
-    if (!word || !meaning) {
-        alert('请填写单词和释义');
-        return;
-    }
-
-    // 添加到全局词库
-    wordData.push({
-        w: word,
-        m: meaning
-    });
-    localStorage.setItem('game_word_data', JSON.stringify(wordData));
-
-    closeAddWordModal();
-    alert(`单词 "${word}" 已添加到词库！你可以在后续游戏中使用它。`);
-}
-
-// ==================== 写作助手逻辑（保留） ====================
-function renderWritingPage() {
-    const container = document.getElementById('writing-container');
-    container.innerHTML = `
-        <div class="writing-header">
-            <h2 class="writing-title">✍️ My Essays</h2>
-            <button class="btn btn-primary" onclick="createNewEssay()">+ New Essay</button>
-        </div>
-        <div class="essay-list" id="essay-list"></div>
-    `;
-    renderEssayList();
-}
-
-function renderEssayList() {
-    const list = document.getElementById('essay-list');
-    const userEssays = essays.filter(e => e.student === 'Me');
-    
-    if (userEssays.length === 0) {
-        list.innerHTML = `
-            <div style="text-align:center; padding:60px; color:var(--gray);">
-                <div style="font-size:60px; margin-bottom:20px;">📝</div>
-                <h3 style="margin-bottom:10px;">No essays yet</h3>
-                <p>Click "New Essay" to start writing!</p>
-            </div>
-        `;
-        return;
-    }
-    
-    userEssays.forEach((essay) => {
-        const card = document.createElement('div');
-        card.className = `essay-card ${essay.graded ? 'graded' : ''}`;
-        card.innerHTML = `
-            <div class="essay-meta">
-                <span>📅 ${essay.date}</span>
-                <span class="essay-status ${essay.graded ? 'status-graded' : 'status-pending'}">
-                    ${essay.graded ? '✅ Graded' : '⏳ Pending'}
-                </span>
-            </div>
-            <div class="essay-preview">${essay.content.substring(0, 150)}${essay.content.length > 150 ? '...' : ''}</div>
-        `;
-        list.appendChild(card);
-    });
-}
-
-function createNewEssay() {
-    const container = document.getElementById('writing-container');
-    container.innerHTML = `
-        <div class="writing-header">
-            <h2 class="writing-title">✍️ Write Essay</h2>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="renderWritingPage()">← Back</button>
-                <button class="btn btn-primary" onclick="saveCurrentEssay()">💾 Submit Essay</button>
-            </div>
-        </div>
-        <div class="editor-container">
-            <div class="essay-editor">
-                <div class="upload-area" onclick="document.getElementById('file-input').click()">
-                    <div style="font-size: 24px;">📷</div>
-                    <div style="font-size: 14px; color: var(--gray);">Click to upload photo (OCR)</div>
-                    <input type="file" id="file-input" accept="image/*" style="display:none;">
-                    <div class="progress-bar" id="progress-bar"><div class="progress-bar-fill" id="progress-fill"></div></div>
-                </div>
-                <textarea id="essay-textarea" class="essay-textarea" placeholder="Write your essay here..."></textarea>
-            </div>
-            <div class="sidebar">
-                <div class="panel">
-                    <h3 class="panel-title">🔍 Grammar Check</h3>
-                    <div class="error-list" id="error-list">
-                        <div style="color:var(--gray); text-align:center; padding:10px;">Write something first!</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    setTimeout(() => {
-        const fileInput = document.getElementById('file-input');
-        if (fileInput) {
-            fileInput.addEventListener('change', handleImageUpload);
-        }
-    }, 100);
-}
-
-function saveCurrentEssay() {
-    const textarea = document.getElementById('essay-textarea');
-    if (!textarea || !textarea.value.trim()) {
-        alert('Please write something before submitting!');
-        return;
-    }
-    
-    const newEssay = {
-        id: Date.now(),
-        student: 'Me',
-        date: new Date().toLocaleDateString(),
-        content: textarea.value.trim(),
-        graded: false,
-        comments: []
-    };
-    
-    essays.push(newEssay);
-    localStorage.setItem('essays', JSON.stringify(essays));
-    
-    alert('Essay submitted successfully! 🎉');
-    renderWritingPage();
-}
-
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const progressBar = document.getElementById('progress-bar');
-    const progressFill = document.getElementById('progress-fill');
-    const textarea = document.getElementById('essay-textarea');
-
-    progressBar.style.display = 'block';
-    progressFill.style.width = '0%';
-    
-    if (typeof Tesseract === 'undefined') {
-        alert('OCR service is not available. Please type your essay manually.');
-        progressBar.style.display = 'none';
-        return;
-    }
-
-    Tesseract.recognize(
-        file,
-        'eng',
-        {
-            logger: (m) => {
-                if (m.status === 'recognizing text') {
-                    const progress = Math.round(m.progress * 100);
-                    progressFill.style.width = `${progress}%`;
-                }
+            if(!mistakeBank.some(m => m.word === currentQ.a)) {
+                mistakeBank.push({word: currentQ.a, type: currentType});
+                localStorage.setItem('mistake_bank', JSON.stringify(mistakeBank));
+                updateStats();
             }
+            document.getElementById('q-content').style.color = 'var(--danger)';
+            setTimeout(() => document.getElementById('q-content').style.color = 'var(--primary)', 500);
         }
-    ).then(({ data: { text } }) => {
-        textarea.value = text || '';
-        progressBar.style.display = 'none';
-    }).catch((error) => {
-        console.error('OCR Error:', error);
-        alert('Failed to recognize text from image. Please try another image or type manually.');
-        progressBar.style.display = 'none';
-    });
-}
+    }
+
+    // --- UI HELPERS ---
+    function showInputUI() {
+        document.getElementById('q-content').innerText = currentQ.q;
+        document.getElementById('input-ui').classList.remove('hidden');
+        document.getElementById('choice-ui').classList.add('hidden');
+        document.getElementById('user-input').value = ""; document.getElementById('user-input').focus();
+    }
+
+    function showChoiceUI() {
+        document.getElementById('q-content').innerText = currentQ.q;
+        document.getElementById('input-ui').classList.add('hidden');
+        const grid = document.getElementById('choice-ui');
+        grid.classList.remove('hidden');
+        const opts = [currentQ.a, currentQ.wrong].sort(() => Math.random() - 0.5);
+        grid.innerHTML = opts.map(o => `<button class="btn-play" onclick="validate('${o}')">${o}</button>`).join('');
+    }
+
+    function openSettings(id) {
+        editingGameId = id;
+        document.getElementById('game-time-input').value = gameTimes[id] || 15;
+        document.getElementById('settings-overlay').style.display = 'flex';
+    }
+
+    function updateTimeLimit() {
+        gameTimes[editingGameId] = parseInt(document.getElementById('game-time-input').value);
+        localStorage.setItem('game_times', JSON.stringify(gameTimes));
+    }
+
+    function openReviewCenter() {
+        const list = document.getElementById('mistake-list');
+        list.innerHTML = mistakeBank.length === 0 ? '<p>No mistakes yet!</p>' : '';
+        mistakeBank.forEach(m => list.innerHTML += `<div style="padding:10px; background:#fef2f2; border-radius:10px; margin-bottom:5px;"><strong>${m.word}</strong> <small>(${m.type})</small></div>`);
+        document.getElementById('review-overlay').style.display = 'flex';
+    }
+
+    function clearMistakes() { mistakeBank = []; localStorage.setItem('mistake_bank', '[]'); updateStats(); openReviewCenter(); }
+    function checkInput() { validate(document.getElementById('user-input').value); }
+    function updateStats() { 
+        document.getElementById('global-score').innerText = totalXP;
+        document.getElementById('mistake-count').innerText = mistakeBank.length;
+    }
+    function closeAll() { clearInterval(timer); document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none'); }
+
+    init();
 </script>
 </body>
 </html>
