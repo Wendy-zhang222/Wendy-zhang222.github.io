@@ -1,235 +1,388 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaQuest Ultimate | 8-Game Suite</title>
-    <style>
-        :root { --brand: #4f46e5; --accent: #06b6d4; --success: #10b981; --bg: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; overflow: hidden; }
-        
-        /* Dashboard */
-        header { background: linear-gradient(135deg, var(--brand), var(--accent)); color: white; padding: 15px; text-align: center; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding: 20px; max-width: 1000px; margin: auto; }
-        .card { background: white; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
-        .card:hover { transform: translateY(-3px); border: 2px solid var(--brand); }
-
-        /* Stage */
-        #stage { position: fixed; inset: 0; background: white; z-index: 100; display: none; flex-direction: column; }
-        #header { padding: 10px 20px; background: #eee; display: flex; justify-content: space-between; align-items: center; }
-        #viewport { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #fff; }
-        
-        /* Editor */
-        #editor { position: absolute; top: 50px; left: 0; width: 100%; background: white; padding: 20px; border-bottom: 4px solid var(--brand); display: none; z-index: 110; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        textarea { width: 100%; height: 100px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; }
-        
-        /* Results */
-        #results { position: absolute; inset: 0; background: rgba(255,255,255,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 120; text-align: center;}
-        
-        /* UI Elements */
-        .btn { padding: 8px 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; background: #ddd; }
-        .match-box { display: flex; gap: 15px; width: 95%; }
-        .col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-        .item { padding: 12px; background: #fff; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; }
-        .item.selected { border-color: var(--brand); background: #eef2ff; }
-        .item.correct { background: var(--success); color: white; opacity: 0.5; pointer-events: none; }
-        
-        /* Whack-a-Mole Styles */
-        .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .hole { width: 100px; height: 70px; background: #777; border-radius: 50%; position: relative; overflow: hidden; }
-        .mole { width: 80%; height: 80%; background: var(--brand); position: absolute; bottom: -100%; left: 10%; transition: 0.2s; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; font-weight: bold;}
-
-        canvas { background: #e0f2fe; display: block; }
-    </style>
-</head>
-<body>
-
-<header><h1>LinguaQuest Ultimate</h1></header>
-
-<div class="grid" id="menu"></div>
-
-<div id="stage">
-    <div id="header">
-        <div>Score: <span id="score">0</span> | Time: <span id="timer">60</span>s</div>
-        <div id="g-name" style="font-weight:bold">Game</div>
-        <div>
-            <button class="btn" onclick="toggleEditor()">⚙️ Edit</button>
-            <button class="btn" onclick="location.reload()" style="background:#fee2e2; color:red">Exit</button>
-        </div>
-    </div>
-
-    <div id="editor">
-        <h4>Content Editor</h4>
-        <textarea id="edit-area" placeholder="Word, Match"></textarea>
-        <button class="btn" onclick="saveData()" style="background:var(--brand); color:white; width:100%">Apply & Restart</button>
-    </div>
-
-    <div id="results">
-        <h1 id="res-title">Finished!</h1>
-        <h2 id="res-score">Score: 0</h2>
-        <button class="btn" onclick="startGame(currentID)" style="background:var(--brand); color:white; padding: 15px 30px;">Play Again</button>
-    </div>
-
-    <div id="viewport"></div>
-</div>
-
-<script>
-let data = JSON.parse(localStorage.getItem('lq_8_data')) || [
-    {w: "Apple", m: "Fruit"}, {w: "Car", m: "Vehicle"}, {w: "Sun", m: "Star"}, {w: "Blue", m: "Sky"}
-];
-
-const games = [
-    {id: 'match', n: 'Match Up', i: '🧩'}, {id: 'cards', n: 'Speaking Cards', i: '🎴'},
-    {id: 'quiz', n: 'Quiz Show', i: '❓'}, {id: 'unjumble', n: 'Unjumble', i: '🔡'},
-    {id: 'mole', n: 'Whack-a-Mole', i: '🔨'}, {id: 'wheel', n: 'Random Wheel', i: '🎡'},
-    {id: 'air', n: 'Airplane', i: '✈️'}, {id: 'pop', n: 'Balloon Pop', i: '🎈'}
-];
-
-let currentID, score, timeLeft, clock, active = false, intervals = [];
-
-function startGame(id) {
-    currentID = id; score = 0; timeLeft = 60; active = true;
-    intervals.forEach(clearInterval); intervals = [];
-    document.getElementById('stage').style.display = 'flex';
-    document.getElementById('results').style.display = 'none';
-    document.getElementById('score').innerText = 0;
-    
-    clearInterval(clock);
-    clock = setInterval(() => {
-        if(!active) return;
-        timeLeft--;
-        document.getElementById('timer').innerText = timeLeft;
-        if(timeLeft <= 0) endGame("Time's Up!");
-    }, 1000);
-
-    const vp = document.getElementById('viewport');
-    vp.innerHTML = '';
-    
-    if(id === 'match') initMatch(vp);
-    else if(id === 'cards') initCards(vp);
-    else if(id === 'mole') initMole(vp);
-    else if(id === 'air' || id === 'pop') initCanvas(vp, id);
-    else if(id === 'quiz') initQuiz(vp);
-    else if(id === 'wheel') initWheel(vp);
-    else vp.innerHTML = "<h2>Activity Loading...</h2>";
-}
-
-function endGame(msg) {
-    active = false; clearInterval(clock);
-    document.getElementById('results').style.display = 'flex';
-    document.getElementById('res-title').innerText = msg;
-    document.getElementById('res-score').innerText = "Final Score: " + score;
-}
-
-/* --- GAME ENGINES --- */
-
-function initMole(vp) {
-    vp.innerHTML = '<div class="mole-grid"></div>';
-    const grid = vp.querySelector('.mole-grid');
-    const target = data[0];
-    document.getElementById('g-name').innerText = "Whack: " + target.m;
-
-    for(let i=0; i<6; i++) {
-        const h = document.createElement('div'); h.className='hole';
-        const m = document.createElement('div'); m.className='mole';
-        h.appendChild(m); grid.appendChild(h);
-    }
-    const moleLoop = setInterval(() => {
-        const moles = document.querySelectorAll('.mole');
-        const m = moles[Math.floor(Math.random()*6)];
-        const isC = Math.random() > 0.5;
-        m.innerText = isC ? target.m : data[Math.floor(Math.random()*data.length)].m;
-        m.style.bottom = '0';
-        m.onclick = () => { if(isC) { score+=100; m.style.bottom='-100%'; document.getElementById('score').innerText=score; }};
-        setTimeout(() => m.style.bottom = '-100%', 1000);
-    }, 1500);
-    intervals.push(moleLoop);
-}
-
-function initCanvas(vp, type) {
-    const c = document.createElement('canvas'); c.width=600; c.height=400; vp.appendChild(c);
-    const ctx = c.getContext('2d');
-    let py = 200, items = [];
-    c.addEventListener('mousemove', (e) => py = e.offsetY);
-    
-    const loop = setInterval(() => {
-        ctx.clearRect(0,0,600,400);
-        ctx.font = "30px Arial";
-        ctx.fillText(type==='air'?'✈️':'🎈', 50, py);
-        items.forEach((it, i) => {
-            it.x -= 4; ctx.font = "16px Arial"; ctx.fillText(it.t, it.x, it.y);
-            if(Math.abs(it.x-50)<30 && Math.abs(it.y-py)<30) { items.splice(i,1); score+=100; document.getElementById('score').innerText=score; }
-        });
-        if(Math.random() > 0.97) items.push({x:600, y:Math.random()*380, t:data[Math.floor(Math.random()*data.length)].m});
-    }, 20);
-    intervals.push(loop);
-}
-
-function initMatch(vp) {
-    const box = document.createElement('div'); box.className = 'match-box';
-    const lCol = document.createElement('div'); lCol.className = 'col';
-    const rCol = document.createElement('div'); rCol.className = 'col';
-    let sL = null, sR = null;
-
-    [...data].sort(()=>Math.random()-0.5).forEach(item => {
-        const d = document.createElement('div'); d.className = 'item'; d.innerText = item.w;
-        d.onclick = () => { if(sL) sL.classList.remove('selected'); sL=d; d.classList.add('selected'); check(); };
-        lCol.appendChild(d);
-    });
-
-    [...data].sort(()=>Math.random()-0.5).forEach(item => {
-        const d = document.createElement('div'); d.className = 'item'; d.innerText = item.m;
-        d.onclick = () => { if(sR) sR.classList.remove('selected'); sR=d; d.classList.add('selected'); check(); };
-        rCol.appendChild(d);
-    });
-
-    function check() {
-        if(sL && sR) {
-            const pair = data.find(v => v.w === sL.innerText && v.m === sR.innerText);
-            if(pair) { sL.className = 'item correct'; sR.className = 'item correct'; score += 100; }
-            else { const a=sL, b=sR; setTimeout(() => { a.classList.remove('selected'); b.classList.remove('selected'); }, 300); }
-            sL = null; sR = null; document.getElementById('score').innerText = score;
-        }
-    }
-    box.append(lCol, rCol); vp.appendChild(box);
-}
-
-function initCards(vp) {
-    const d = [...data].sort(()=>Math.random()-0.5);
-    d.forEach((item, i) => {
-        const c = document.createElement('div'); c.style.width='250px'; c.style.height='350px'; c.style.background='white'; c.style.border='5px solid var(--brand)';
-        c.style.borderRadius='15px'; c.style.display='flex'; c.style.alignItems='center'; c.style.justifyContent='center'; c.style.position='absolute';
-        c.style.zIndex = d.length - i; c.innerText = item.w; c.style.boxShadow='0 4px 10px rgba(0,0,0,0.2)'; c.style.cursor='pointer'; c.style.transition='0.5s';
-        c.onclick = () => { c.style.transform = "translate(600px, -200px) rotate(45deg)"; score += 50; document.getElementById('score').innerText = score; };
-        vp.appendChild(c);
-    });
-}
-
-/* --- UTILS --- */
-function toggleEditor() {
-    const ed = document.getElementById('editor');
-    if(ed.style.display === 'block') ed.style.display = 'none';
-    else {
-        document.getElementById('edit-area').value = data.map(v => `${v.w}, ${v.m}`).join('\n');
-        ed.style.display = 'block';
-    }
-}
-
-function saveData() {
-    const lines = document.getElementById('edit-area').value.trim().split('\n');
-    data = lines.map(l => ({ w: l.split(',')[0].trim(), m: l.split(',')[1].trim() }));
-    localStorage.setItem('lq_8_data', JSON.stringify(data));
-    document.getElementById('editor').style.display = 'none';
-    startGame(currentID);
-}
-
-const menu = document.getElementById('menu');
-games.forEach(g => {
-    const c = document.createElement('div'); c.className = 'card';
-    c.innerHTML = `<div style="font-size:25px">${g.i}</div><div style="font-weight:bold">${g.n}</div>`;
-    c.onclick = () => startGame(g.id);
-    menu.appendChild(c);
-});
-</script>
-</body>
-</html>
+diff --git a/index.html b/index.html
+index 3314a28415c94c65f83995b0da9dd6344088b935..346391020252353e2456f86b8be2187a3ee50766 100644
+--- a/index.html
++++ b/index.html
+@@ -10,131 +10,147 @@
+         
+         /* Dashboard */
+         header { background: linear-gradient(135deg, var(--brand), var(--accent)); color: white; padding: 15px; text-align: center; }
+         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; padding: 20px; max-width: 1000px; margin: auto; }
+         .card { background: white; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s; }
+         .card:hover { transform: translateY(-3px); border: 2px solid var(--brand); }
+ 
+         /* Stage */
+         #stage { position: fixed; inset: 0; background: white; z-index: 100; display: none; flex-direction: column; }
+         #header { padding: 10px 20px; background: #eee; display: flex; justify-content: space-between; align-items: center; }
+         #viewport { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; background: #fff; }
+         
+         /* Editor */
+         #editor { position: absolute; top: 50px; left: 0; width: 100%; background: white; padding: 20px; border-bottom: 4px solid var(--brand); display: none; z-index: 110; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+         textarea { width: 100%; height: 100px; margin-bottom: 10px; padding: 10px; box-sizing: border-box; }
+         
+         /* Results */
+         #results { position: absolute; inset: 0; background: rgba(255,255,255,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 120; text-align: center;}
+         
+         /* UI Elements */
+         .btn { padding: 8px 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; background: #ddd; }
+         .match-box { display: flex; gap: 15px; width: 95%; }
+         .col { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+         .item { padding: 12px; background: #fff; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; font-weight: bold; }
+         .item.selected { border-color: var(--brand); background: #eef2ff; }
+-        .item.correct { background: var(--success); color: white; opacity: 0.5; pointer-events: none; }
++        .item.correct { background: var(--success); color: white; opacity: 0.5; pointer-events: none; }
++
++        .panel { width: min(700px, 95%); background: #fff; border: 2px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
++        .prompt { font-size: 1.3rem; font-weight: 700; margin-bottom: 14px; text-align: center; }
++        .options { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
++        .option-btn { padding: 12px; border: 2px solid #cbd5e1; border-radius: 10px; background: #f8fafc; font-weight: 700; cursor: pointer; }
++        .option-btn:hover { border-color: var(--brand); }
++        .feedback { margin-top: 12px; min-height: 20px; text-align: center; font-weight: 700; }
++
++        .wheel-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
++        .wheel-board { width: 320px; height: 320px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 8px solid #334155; background: #f8fafc; text-align: center; padding: 16px; font-size: 1.2rem; font-weight: 800; }
+         
+         /* Whack-a-Mole Styles */
+         .mole-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+         .hole { width: 100px; height: 70px; background: #777; border-radius: 50%; position: relative; overflow: hidden; }
+         .mole { width: 80%; height: 80%; background: var(--brand); position: absolute; bottom: -100%; left: 10%; transition: 0.2s; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; font-weight: bold;}
+ 
+         canvas { background: #e0f2fe; display: block; }
+     </style>
+ </head>
+ <body>
+ 
+ <header><h1>LinguaQuest Ultimate</h1></header>
+ 
+ <div class="grid" id="menu"></div>
+ 
+ <div id="stage">
+     <div id="header">
+         <div>Score: <span id="score">0</span> | Time: <span id="timer">60</span>s</div>
+         <div id="g-name" style="font-weight:bold">Game</div>
+         <div>
+             <button class="btn" onclick="toggleEditor()">⚙️ Edit</button>
+             <button class="btn" onclick="location.reload()" style="background:#fee2e2; color:red">Exit</button>
+         </div>
+     </div>
+ 
+     <div id="editor">
+         <h4>Content Editor</h4>
+         <textarea id="edit-area" placeholder="Word, Match"></textarea>
+         <button class="btn" onclick="saveData()" style="background:var(--brand); color:white; width:100%">Apply & Restart</button>
+     </div>
+ 
+     <div id="results">
+         <h1 id="res-title">Finished!</h1>
+         <h2 id="res-score">Score: 0</h2>
+         <button class="btn" onclick="startGame(currentID)" style="background:var(--brand); color:white; padding: 15px 30px;">Play Again</button>
+     </div>
+ 
+     <div id="viewport"></div>
+ </div>
+ 
+ <script>
+ let data = JSON.parse(localStorage.getItem('lq_8_data')) || [
+     {w: "Apple", m: "Fruit"}, {w: "Car", m: "Vehicle"}, {w: "Sun", m: "Star"}, {w: "Blue", m: "Sky"}
+ ];
+ 
+-const games = [
+-    {id: 'match', n: 'Match Up', i: '🧩'}, {id: 'cards', n: 'Speaking Cards', i: '🎴'},
+-    {id: 'quiz', n: 'Quiz Show', i: '❓'}, {id: 'unjumble', n: 'Unjumble', i: '🔡'},
+-    {id: 'mole', n: 'Whack-a-Mole', i: '🔨'}, {id: 'wheel', n: 'Random Wheel', i: '🎡'},
+-    {id: 'air', n: 'Airplane', i: '✈️'}, {id: 'pop', n: 'Balloon Pop', i: '🎈'}
+-];
++const games = [
++    {id: 'match', n: 'Match Up', i: '🧩'}, {id: 'cards', n: 'Speaking Cards', i: '🎴'},
++    {id: 'quiz', n: 'Quiz Show', i: '❓'}, {id: 'unjumble', n: 'Unjumble', i: '🔡'},
++    {id: 'mole', n: 'Whack-a-Mole', i: '🔨'}, {id: 'wheel', n: 'Random Wheel', i: '🎡'},
++    {id: 'air', n: 'Airplane', i: '✈️'}, {id: 'pop', n: 'Balloon Pop', i: '🎈'},
++    {id: 'anagram', n: 'Anagram Race', i: '🧠'}, {id: 'tf', n: 'True or False', i: '✅'}
++];
+ 
+ let currentID, score, timeLeft, clock, active = false, intervals = [];
+ 
+-function startGame(id) {
+-    currentID = id; score = 0; timeLeft = 60; active = true;
++function startGame(id) {
++    currentID = id; score = 0; timeLeft = 60; active = true;
+     intervals.forEach(clearInterval); intervals = [];
+     document.getElementById('stage').style.display = 'flex';
+-    document.getElementById('results').style.display = 'none';
+-    document.getElementById('score').innerText = 0;
++    document.getElementById('results').style.display = 'none';
++    document.getElementById('score').innerText = 0;
++    document.getElementById('timer').innerText = timeLeft;
++    document.getElementById('g-name').innerText = games.find(g => g.id === id)?.n || 'Game';
+     
+     clearInterval(clock);
+     clock = setInterval(() => {
+         if(!active) return;
+         timeLeft--;
+         document.getElementById('timer').innerText = timeLeft;
+         if(timeLeft <= 0) endGame("Time's Up!");
+     }, 1000);
+ 
+     const vp = document.getElementById('viewport');
+     vp.innerHTML = '';
+     
+-    if(id === 'match') initMatch(vp);
+-    else if(id === 'cards') initCards(vp);
+-    else if(id === 'mole') initMole(vp);
+-    else if(id === 'air' || id === 'pop') initCanvas(vp, id);
+-    else if(id === 'quiz') initQuiz(vp);
+-    else if(id === 'wheel') initWheel(vp);
+-    else vp.innerHTML = "<h2>Activity Loading...</h2>";
+-}
++    if(id === 'match') initMatch(vp);
++    else if(id === 'cards') initCards(vp);
++    else if(id === 'mole') initMole(vp);
++    else if(id === 'air' || id === 'pop') initCanvas(vp, id);
++    else if(id === 'quiz') initQuiz(vp);
++    else if(id === 'wheel') initWheel(vp);
++    else if(id === 'unjumble') initUnjumble(vp);
++    else if(id === 'anagram') initAnagram(vp);
++    else if(id === 'tf') initTrueFalse(vp);
++    else vp.innerHTML = "<h2>Activity Loading...</h2>";
++}
+ 
+ function endGame(msg) {
+     active = false; clearInterval(clock);
+     document.getElementById('results').style.display = 'flex';
+     document.getElementById('res-title').innerText = msg;
+     document.getElementById('res-score').innerText = "Final Score: " + score;
+ }
+ 
+ /* --- GAME ENGINES --- */
+ 
+ function initMole(vp) {
+     vp.innerHTML = '<div class="mole-grid"></div>';
+     const grid = vp.querySelector('.mole-grid');
+     const target = data[0];
+     document.getElementById('g-name').innerText = "Whack: " + target.m;
+ 
+     for(let i=0; i<6; i++) {
+         const h = document.createElement('div'); h.className='hole';
+         const m = document.createElement('div'); m.className='mole';
+         h.appendChild(m); grid.appendChild(h);
+     }
+     const moleLoop = setInterval(() => {
+         const moles = document.querySelectorAll('.mole');
+         const m = moles[Math.floor(Math.random()*6)];
+         const isC = Math.random() > 0.5;
+@@ -172,60 +188,214 @@ function initMatch(vp) {
+     let sL = null, sR = null;
+ 
+     [...data].sort(()=>Math.random()-0.5).forEach(item => {
+         const d = document.createElement('div'); d.className = 'item'; d.innerText = item.w;
+         d.onclick = () => { if(sL) sL.classList.remove('selected'); sL=d; d.classList.add('selected'); check(); };
+         lCol.appendChild(d);
+     });
+ 
+     [...data].sort(()=>Math.random()-0.5).forEach(item => {
+         const d = document.createElement('div'); d.className = 'item'; d.innerText = item.m;
+         d.onclick = () => { if(sR) sR.classList.remove('selected'); sR=d; d.classList.add('selected'); check(); };
+         rCol.appendChild(d);
+     });
+ 
+     function check() {
+         if(sL && sR) {
+             const pair = data.find(v => v.w === sL.innerText && v.m === sR.innerText);
+             if(pair) { sL.className = 'item correct'; sR.className = 'item correct'; score += 100; }
+             else { const a=sL, b=sR; setTimeout(() => { a.classList.remove('selected'); b.classList.remove('selected'); }, 300); }
+             sL = null; sR = null; document.getElementById('score').innerText = score;
+         }
+     }
+     box.append(lCol, rCol); vp.appendChild(box);
+ }
+ 
+-function initCards(vp) {
++function initCards(vp) {
+     const d = [...data].sort(()=>Math.random()-0.5);
+     d.forEach((item, i) => {
+         const c = document.createElement('div'); c.style.width='250px'; c.style.height='350px'; c.style.background='white'; c.style.border='5px solid var(--brand)';
+         c.style.borderRadius='15px'; c.style.display='flex'; c.style.alignItems='center'; c.style.justifyContent='center'; c.style.position='absolute';
+         c.style.zIndex = d.length - i; c.innerText = item.w; c.style.boxShadow='0 4px 10px rgba(0,0,0,0.2)'; c.style.cursor='pointer'; c.style.transition='0.5s';
+         c.onclick = () => { c.style.transform = "translate(600px, -200px) rotate(45deg)"; score += 50; document.getElementById('score').innerText = score; };
+         vp.appendChild(c);
+     });
+-}
++}
++
++function initQuiz(vp) {
++    vp.innerHTML = `<div class="panel"><div class="prompt" id="quiz-q"></div><div class="options" id="quiz-opts"></div><div class="feedback" id="quiz-fb"></div></div>`;
++    const q = vp.querySelector('#quiz-q');
++    const opts = vp.querySelector('#quiz-opts');
++    const fb = vp.querySelector('#quiz-fb');
++
++    function loadQuestion() {
++        const correct = data[Math.floor(Math.random() * data.length)];
++        const pool = [...data].filter(v => v.m !== correct.m).sort(() => Math.random() - 0.5).slice(0, 3).map(v => v.m);
++        const choices = [correct.m, ...pool].sort(() => Math.random() - 0.5);
++        q.textContent = `What matches "${correct.w}"?`;
++        fb.textContent = '';
++        opts.innerHTML = '';
++        choices.forEach(choice => {
++            const b = document.createElement('button');
++            b.className = 'option-btn';
++            b.textContent = choice;
++            b.onclick = () => {
++                const isCorrect = choice === correct.m;
++                if(isCorrect) score += 100;
++                else score = Math.max(0, score - 30);
++                document.getElementById('score').innerText = score;
++                fb.style.color = isCorrect ? '#16a34a' : '#dc2626';
++                fb.textContent = isCorrect ? 'Correct!' : `Oops. Answer: ${correct.m}`;
++                setTimeout(loadQuestion, 700);
++            };
++            opts.appendChild(b);
++        });
++    }
++
++    loadQuestion();
++}
++
++function initWheel(vp) {
++    vp.innerHTML = `<div class="wheel-wrap"><div class="wheel-board" id="wheel-board">Spin to choose a prompt</div><button class="btn" id="spin-btn" style="background:var(--brand); color:#fff; font-size:1rem">SPIN</button><div id="wheel-result" class="feedback">&nbsp;</div></div>`;
++    const board = vp.querySelector('#wheel-board');
++    const result = vp.querySelector('#wheel-result');
++    const spinBtn = vp.querySelector('#spin-btn');
++
++    spinBtn.onclick = () => {
++        spinBtn.disabled = true;
++        let spins = 12;
++        const spinLoop = setInterval(() => {
++            const pick = data[Math.floor(Math.random() * data.length)];
++            board.textContent = `${pick.w} ↔ ${pick.m}`;
++            spins--;
++            if(spins <= 0) {
++                clearInterval(spinLoop);
++                result.textContent = 'Say the word and sentence aloud to score points!';
++                score += 80;
++                document.getElementById('score').innerText = score;
++                spinBtn.disabled = false;
++            }
++        }, 120);
++    };
++}
++
++function initUnjumble(vp) {
++    vp.innerHTML = `<div class="panel"><div class="prompt" id="unjumble-q"></div><input id="unjumble-input" class="option-btn" style="width:100%; box-sizing:border-box" placeholder="Type your answer"/><button class="btn" id="unjumble-submit" style="margin-top:12px; width:100%; background:var(--brand); color:#fff">Submit</button><div class="feedback" id="unjumble-fb"></div></div>`;
++    const q = vp.querySelector('#unjumble-q');
++    const input = vp.querySelector('#unjumble-input');
++    const submit = vp.querySelector('#unjumble-submit');
++    const fb = vp.querySelector('#unjumble-fb');
++    let answer = '';
++
++    function scramble(word) {
++        return word.split('').sort(() => Math.random() - 0.5).join('');
++    }
++
++    function next() {
++        const pick = data[Math.floor(Math.random() * data.length)].w;
++        answer = pick;
++        let shuffled = scramble(pick);
++        if(shuffled.toLowerCase() === pick.toLowerCase() && pick.length > 1) shuffled = pick.slice(1) + pick[0];
++        q.textContent = `Unscramble: ${shuffled}`;
++        input.value = '';
++        fb.textContent = '';
++    }
++
++    submit.onclick = () => {
++        const isCorrect = input.value.trim().toLowerCase() === answer.toLowerCase();
++        if(isCorrect) score += 120;
++        else score = Math.max(0, score - 20);
++        document.getElementById('score').innerText = score;
++        fb.style.color = isCorrect ? '#16a34a' : '#dc2626';
++        fb.textContent = isCorrect ? 'Great!' : `Correct answer: ${answer}`;
++        setTimeout(next, 700);
++    };
++    input.addEventListener('keydown', e => { if(e.key === 'Enter') submit.click(); });
++
++    next();
++}
++
++function initAnagram(vp) {
++    vp.innerHTML = `<div class="panel"><div class="prompt">Build words from clues</div><div class="prompt" id="ana-clue" style="font-size:1.1rem"></div><input id="ana-input" class="option-btn" style="width:100%; box-sizing:border-box" placeholder="Type the matching word"/><button class="btn" id="ana-submit" style="margin-top:12px; width:100%; background:var(--brand); color:#fff">Check</button><div class="feedback" id="ana-fb"></div></div>`;
++    const clue = vp.querySelector('#ana-clue');
++    const input = vp.querySelector('#ana-input');
++    const fb = vp.querySelector('#ana-fb');
++    let current;
++    function next() {
++        current = data[Math.floor(Math.random() * data.length)];
++        clue.textContent = `Clue: ${current.m}`;
++        input.value = '';
++        fb.textContent = '';
++    }
++    vp.querySelector('#ana-submit').onclick = () => {
++        const ok = input.value.trim().toLowerCase() === current.w.toLowerCase();
++        score += ok ? 90 : -10;
++        score = Math.max(0, score);
++        document.getElementById('score').innerText = score;
++        fb.style.color = ok ? '#16a34a' : '#dc2626';
++        fb.textContent = ok ? 'Correct!' : `It was ${current.w}.`;
++        setTimeout(next, 700);
++    };
++    input.addEventListener('keydown', e => { if(e.key === 'Enter') vp.querySelector('#ana-submit').click(); });
++    next();
++}
++
++function initTrueFalse(vp) {
++    vp.innerHTML = `<div class="panel"><div class="prompt" id="tf-q"></div><div class="options"><button class="option-btn" id="tf-true">True</button><button class="option-btn" id="tf-false">False</button></div><div class="feedback" id="tf-fb"></div></div>`;
++    const q = vp.querySelector('#tf-q');
++    const fb = vp.querySelector('#tf-fb');
++    let isStatementTrue = false;
++
++    function ask() {
++        const correctPair = data[Math.floor(Math.random() * data.length)];
++        const useTrue = Math.random() > 0.5;
++        if(useTrue || data.length < 2) {
++            q.textContent = `${correctPair.w} means ${correctPair.m}.`;
++            isStatementTrue = true;
++        } else {
++            const wrongMatch = data.filter(v => v.w !== correctPair.w && v.m !== correctPair.m)[Math.floor(Math.random() * (data.length - 1))] || data[0];
++            q.textContent = `${correctPair.w} means ${wrongMatch.m}.`;
++            isStatementTrue = false;
++        }
++        fb.textContent = '';
++    }
++
++    vp.querySelector('#tf-true').onclick = () => check(true);
++    vp.querySelector('#tf-false').onclick = () => check(false);
++
++    function check(choice) {
++        const ok = choice === isStatementTrue;
++        score += ok ? 100 : -25;
++        score = Math.max(0, score);
++        document.getElementById('score').innerText = score;
++        fb.style.color = ok ? '#16a34a' : '#dc2626';
++        fb.textContent = ok ? 'Correct choice!' : 'Not quite!';
++        setTimeout(ask, 700);
++    }
++
++    ask();
++}
+ 
+ /* --- UTILS --- */
+ function toggleEditor() {
+     const ed = document.getElementById('editor');
+     if(ed.style.display === 'block') ed.style.display = 'none';
+     else {
+         document.getElementById('edit-area').value = data.map(v => `${v.w}, ${v.m}`).join('\n');
+         ed.style.display = 'block';
+     }
+ }
+ 
+ function saveData() {
+     const lines = document.getElementById('edit-area').value.trim().split('\n');
+     data = lines.map(l => ({ w: l.split(',')[0].trim(), m: l.split(',')[1].trim() }));
+     localStorage.setItem('lq_8_data', JSON.stringify(data));
+     document.getElementById('editor').style.display = 'none';
+     startGame(currentID);
+ }
+ 
+ const menu = document.getElementById('menu');
+ games.forEach(g => {
+     const c = document.createElement('div'); c.className = 'card';
+     c.innerHTML = `<div style="font-size:25px">${g.i}</div><div style="font-weight:bold">${g.n}</div>`;
+     c.onclick = () => startGame(g.id);
+     menu.appendChild(c);
