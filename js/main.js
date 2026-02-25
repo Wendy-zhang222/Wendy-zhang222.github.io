@@ -249,4 +249,6 @@ window.requireAuth = requireAuth;
 window.speak = speak;
 window.fetchInfo = fetchInfo;
 window.saveUserData = saveUserData;
+
 window.syncDataLive = syncDataLive;
+window.switchAuthTab = switchAuthTab;
