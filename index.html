@@ -715,5 +715,22 @@
             }
         };
     </script>
+<script src="js/main.js"></script>
+
+    <script src="js/listen.js"></script>
+    <script src="js/read.js"></script>
+    <script src="js/vocab.js"></script>
+    <script src="js/games.js"></script>
+
+    <script>
+        window.onload = () => {
+            try { 
+                initAuth(); 
+                showPage('home'); 
+            } catch(err) { 
+                console.error("启动失败:", err); 
+            }
+        };
+    </script>
 </body>
 </html>
