@@ -16,8 +16,9 @@ function recordPV() {
     localStorage.setItem('eh_site_stats', JSON.stringify(siteStats));
 }
 
-// 全局系统公告
+// 全局系统公告 & B站专栏数据
 let sysAnnouncement = localStorage.getItem('eh_sys_announcement') || "";
+let bilibiliLinks = JSON.parse(localStorage.getItem('eh_bili_links')) || [];
 
 const GUEST_TRIAL_MS = 7 * 24 * 60 * 60 * 1000;
 const USER_TRIAL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -88,11 +89,113 @@ function saveUserData() {
     } catch(e) {}
 }
 function saveData() { saveUserData(); }
-function syncDataLive() { loadUserData(); updateBadges(); renderSysAnnouncement(); }
+function syncDataLive() { loadUserData(); updateBadges(); renderSysAnnouncement(); renderBiliHome(); }
 
+// =========================================================================
+// B站专栏动态渲染逻辑 (与留言板完美并列，支持响应式布局)
+// =========================================================================
+function renderBiliHome() {
+    let pHome = document.getElementById('p-home');
+    if (!pHome) return;
+    
+    let msgBoard = pHome.querySelector('.msg-board');
+    if (!msgBoard) return;
+
+    // 1. 动态创建一个并列的父容器 (Flexbox 布局)
+    let bottomWrapper = document.getElementById('home-bottom-wrapper');
+    if (!bottomWrapper) {
+        bottomWrapper = document.createElement('div');
+        bottomWrapper.id = 'home-bottom-wrapper';
+        // 核心 CSS：电脑端并排，手机端宽度不足时自动折叠为上下排列
+        bottomWrapper.style.cssText = 'display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; margin-top: 40px;';
+        
+        // 把容器插到留言板原来的位置，并把留言板移入容器内
+        pHome.insertBefore(bottomWrapper, msgBoard);
+        bottomWrapper.appendChild(msgBoard);
+        
+        // 调整留言板样式以适配双栏
+        msgBoard.style.flex = '1 1 400px'; 
+        msgBoard.style.marginTop = '0';
+    }
+    
+    // 2. 动态创建 B站专栏 容器
+    let biliContainer = document.getElementById('bili-home-container');
+    if (!biliContainer) {
+        biliContainer = document.createElement('div');
+        biliContainer.id = 'bili-home-container';
+        biliContainer.style.flex = '1 1 400px'; 
+        // 将 B 站专栏插入到留言板的左侧
+        bottomWrapper.insertBefore(biliContainer, msgBoard);
+    }
+    
+    // 3. 渲染判断
+    if (!bilibiliLinks || bilibiliLinks.length === 0) {
+        // 如果没视频，隐藏 B站区域，右侧留言板会自动 100% 铺满！
+        biliContainer.innerHTML = '';
+        biliContainer.style.display = 'none';
+        return;
+    }
+    
+    biliContainer.style.display = 'block';
+    let html = `
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+            <h2 style="margin:0; font-size:1.8rem; color:var(--text);">📺 B站专栏推荐</h2>
+            <span style="background:#fb7299; color:white; padding:4px 10px; border-radius:12px; font-size:0.85rem; font-weight:bold; box-shadow:0 2px 5px rgba(251,114,153,0.3);">Bilibili</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr; gap:25px;">
+    `;
+    
+    bilibiliLinks.forEach(item => {
+        html += `
+            <div class="main-card" style="padding:0; border-radius:15px; overflow:hidden; background:#000; box-shadow:var(--shadow); border: 1px solid var(--border);">
+                <div style="position:relative; width:100%; padding-top:56.25%;">
+                    <iframe src="//player.bilibili.com/player.html?bvid=${item.bvid}&page=1&high_quality=1&danmaku=0" 
+                            scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" 
+                            style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;"></iframe>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    biliContainer.innerHTML = html;
+}
+
+function addBiliVideo() {
+    let input = document.getElementById('admin-bili-input').value.trim();
+    if (!input) return alert("请输入完整的 B站视频链接 或 BVID！");
+    
+    // 智能正则提取：无论用户输入整段网址还是纯 BV 号，都能精准抓取
+    let match = input.match(/(BV[1-9A-HJ-NP-Za-km-z]{10})/i);
+    if (!match) return alert("❌ 无法识别有效的 BVID！\n请检查链接是否正确，例如：https://www.bilibili.com/video/BV1xx...");
+    
+    let bvid = match[0];
+    if (bilibiliLinks.find(v => v.bvid === bvid)) return alert("⚠️ 该视频已经存在于专栏中啦！");
+    
+    bilibiliLinks.unshift({ id: 'bili_' + Date.now(), bvid: bvid, date: new Date().toLocaleDateString() });
+    localStorage.setItem('eh_bili_links', JSON.stringify(bilibiliLinks));
+    document.getElementById('admin-bili-input').value = '';
+    
+    renderAdminPanel(); // 刷新后台
+    renderBiliHome();   // 刷新前台
+    alert("✅ B站视频成功添加到首页专栏！");
+}
+
+function deleteBiliVideo(id) {
+    if (confirm("确定要将此视频从首页专栏移除吗？")) {
+        bilibiliLinks = bilibiliLinks.filter(v => v.id !== id);
+        localStorage.setItem('eh_bili_links', JSON.stringify(bilibiliLinks));
+        renderAdminPanel();
+        renderBiliHome();
+    }
+}
+
+// =========================================================================
+// 系统公告渲染 (置于底部双栏的上方)
+// =========================================================================
 function renderSysAnnouncement() {
-    let homeBoard = document.querySelector('.msg-board');
-    if(!homeBoard) return;
+    let pHome = document.getElementById('p-home');
+    if(!pHome) return;
     let oldAnnounce = document.getElementById('sys-announce-banner');
     if (oldAnnounce) oldAnnounce.remove();
     
@@ -101,7 +204,18 @@ function renderSysAnnouncement() {
         banner.id = 'sys-announce-banner';
         banner.style.cssText = 'background: linear-gradient(90deg, #4f46e5, #ec4899); color: white; padding: 15px 20px; border-radius: 15px; margin-bottom: 20px; font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3); animation: fadein 0.5s;';
         banner.innerHTML = `<span style="font-size:1.5rem;">📢</span> <span>${sysAnnouncement}</span>`;
-        homeBoard.insertBefore(banner, homeBoard.firstChild);
+        
+        let bottomWrapper = document.getElementById('home-bottom-wrapper');
+        let msgBoard = pHome.querySelector('.msg-board');
+        
+        // 保证公告横幅永远插在留言板和B站专栏的最上方
+        if (bottomWrapper) {
+            pHome.insertBefore(banner, bottomWrapper);
+        } else if (msgBoard) {
+            pHome.insertBefore(banner, msgBoard);
+        } else {
+            pHome.appendChild(banner);
+        }
     }
 }
 
@@ -132,7 +246,7 @@ function initAuth() {
         usersDB.push({ id: 'admin_0', email: 'admin', password: 'admin', role: 'admin', nickname: '系统超级管理员', avatar: '👑', expireAt: 9999999999999, status: 'active' });
         localStorage.setItem('eh_users_db', JSON.stringify(usersDB));
     }
-    renderUserNav(); loadUserData(); renderMessages(); updateBadges(); renderSysAnnouncement();
+    renderUserNav(); loadUserData(); renderMessages(); updateBadges(); renderSysAnnouncement(); renderBiliHome();
 }
 
 function requireAuth() {
@@ -160,7 +274,6 @@ function checkGuestTrial() {
     return true;
 }
 
-// 独一无二的游客 ID 生成器
 function getGuestIdentity() {
     let identity = localStorage.getItem('eh_guest_identity');
     if(identity) return JSON.parse(identity);
@@ -185,7 +298,6 @@ function guestLogin() {
         nickname: identity.nickname, avatar: identity.avatar, expireAt: parseInt(guestInit) + GUEST_TRIAL_MS, status: 'active'
     };
     
-    // 检查该游客是否已被封禁
     let existUser = usersDB.find(u => u.id === identity.id);
     if(existUser && existUser.status === 'banned') { alert("⛔ 当前设备涉及违规操作，已被拒绝访问。"); return; }
     if(!existUser) { usersDB.push(guestUser); localStorage.setItem('eh_users_db', JSON.stringify(usersDB)); }
@@ -199,7 +311,7 @@ function guestLogin() {
 }
 
 // =========================================================================
-// 互动社区留言板 (Feedback Message Board)
+// 互动社区留言板
 // =========================================================================
 function submitMessage() {
     if(!requireAuth()) return;
@@ -464,6 +576,7 @@ function showPage(id) {
         let navPrefix = id.split('-')[0]; let navEl = document.getElementById('nav-' + navPrefix); if(navEl) { navEl.classList.add('active'); }
         
         // 跨文件渲染函数调用
+        if(id === 'home') renderBiliHome(); // 确保每次回首页都渲染 B 站视频
         if(id === 'vocab-nb' && typeof renderNB === 'function') renderNB();
         if(id === 'vocab-bs' && typeof renderBS === 'function') renderBS();
         if(id === 'vocab-srs' && typeof renderVocabSRS === 'function') renderVocabSRS();
@@ -545,13 +658,14 @@ function renderAdminPanel() {
     document.getElementById('admin-stat-users').innerText = usersDB.filter(u => u.role !== 'admin').length;
     document.getElementById('admin-stat-msgs').innerText = messagesDB.length;
 
-    // 动态渲染顶部公告板配置区
+    let panelTop = document.querySelector('#p-admin .hub-grid');
+    
+    // 1. 动态注入公告面板
     let announceArea = document.getElementById('admin-announce-area');
     if(!announceArea) {
-        let panelTop = document.querySelector('#p-admin .hub-grid');
         announceArea = document.createElement('div');
         announceArea.id = 'admin-announce-area';
-        announceArea.style.cssText = 'background: var(--primary-light); padding: 20px; border-radius: 20px; border: 2px dashed #c7d2fe; margin-bottom: 30px;';
+        announceArea.style.cssText = 'background: var(--primary-light); padding: 20px; border-radius: 20px; border: 2px dashed #c7d2fe; margin-bottom: 20px;';
         announceArea.innerHTML = `
             <h3 style="margin-top:0; color:var(--primary); font-size:1.2rem;">📢 发布全局系统公告</h3>
             <div style="display:flex; gap:10px;">
@@ -560,6 +674,37 @@ function renderAdminPanel() {
             </div>`;
         panelTop.parentNode.insertBefore(announceArea, panelTop);
     }
+    
+    // 2. 动态注入 B站专栏 管理面板
+    let biliArea = document.getElementById('admin-bili-area');
+    if(!biliArea) {
+        biliArea = document.createElement('div');
+        biliArea.id = 'admin-bili-area';
+        biliArea.style.cssText = 'background: #fff0f6; padding: 25px; border-radius: 20px; border: 2px dashed #ff85c0; margin-bottom: 30px;';
+        panelTop.parentNode.insertBefore(biliArea, panelTop); 
+    }
+    
+    let biliListHtml = bilibiliLinks.length === 0 ? '<p style="color:var(--text-light); font-size:0.95rem; margin-top:15px;">首页专栏暂无视频，快去添加吧！</p>' : 
+        bilibiliLinks.map(v => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:12px 15px; border-radius:12px; margin-bottom:10px; border:1px solid #ffd6e7; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-weight:bold; color:#eb2f96; font-size:1.1rem;">📺 ${v.bvid} <span style="font-weight:normal; font-size:0.85rem; color:#8c8c8c; margin-left:10px;">(添加于 ${v.date})</span></div>
+                <button class="btn btn-outline" style="padding:6px 15px; font-size:0.85rem; border-color:#ff4d4f; color:#ff4d4f;" onclick="deleteBiliVideo('${v.id}')">移除</button>
+            </div>
+        `).join('');
+
+    biliArea.innerHTML = `
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+            <span style="font-size:1.8rem; filter: drop-shadow(0 2px 4px rgba(251,114,153,0.3));">📺</span>
+            <h3 style="margin:0; color:#eb2f96; font-size:1.3rem;">B 站首页专栏管理</h3>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <input type="text" id="admin-bili-input" placeholder="请粘贴 B站视频的链接，或者直接输入 BVID (例如: BV1xxxx...)" style="flex:1; margin:0; border-color:#ffadd2; outline:none;" onfocus="this.style.borderColor='#eb2f96'" onblur="this.style.borderColor='#ffadd2'">
+            <button class="btn" style="background: linear-gradient(135deg, #fb7299, #ff4d4f); box-shadow: 0 4px 10px rgba(251,114,153,0.3);" onclick="addBiliVideo()">+ 添加视频到首页</button>
+        </div>
+        <div style="max-height: 250px; overflow-y:auto; padding-right:5px;">
+            ${biliListHtml}
+        </div>
+    `;
 
     const tbody = document.getElementById('admin-user-list'); let html = '';
     usersDB.forEach((u) => {
