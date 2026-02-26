@@ -1,1045 +1,585 @@
-// js/games.js
-// =========================================================================
-// 🎮 游戏大厅与 20 款游戏引擎核心逻辑
-// =========================================================================
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnglishHub Pro - Ultimate Edition (Commercial Full)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
-// =========================================================================
-// 1. 游戏生命周期与状态控制
-// =========================================================================
-function clearGameTimers() { 
-    for(let i=0; i<gameTimers.length; i++) { 
-        clearInterval(gameTimers[i]); 
-    } 
-    gameTimers = []; 
-}
+<div id="api-loading">🤖 AI 正在处理... 请稍候</div>
 
-function exitGame() { 
-    clearGameTimers(); 
-    if(score > 0 && currentUser) { 
-        let gTitle = document.getElementById('g-title').innerText.split('(')[0].trim(); 
-        gameHistory.unshift({ date: new Date().toLocaleString(), game: gTitle, score: score }); 
-        if(gameHistory.length > 50) gameHistory.pop(); 
-        saveUserData(); 
-    }
-    showPage('games'); 
-}
-
-function updateScore() { 
-    let scoreEl = document.getElementById('g-score'); 
-    if(scoreEl) scoreEl.innerText = "Score: " + score; 
-}
-
-// =========================================================================
-// 2. 游戏配置与启动 (Game Setup)
-// =========================================================================
-function populateLibSource() {
-    syncDataLive(); 
-    const sel = document.getElementById('sel-lib-source'); 
-    if(!sel) return;
-    
-    let htmlStr = `<option value="all" style="font-weight:bold;">📚 混合模式：所有系统词库</option>`; 
-    let nbCount = (notebook && notebook.length) ? notebook.length : 0; 
-    htmlStr += `<option value="nb" style="font-weight:bold;">🧡 我的生词本 (全 ${nbCount} 词)</option>`;
-    
-    if (bookshelf && Array.isArray(bookshelf)) {
-        for(let i=0; i<bookshelf.length; i++) {
-            let b = bookshelf[i]; 
-            let bsCount = (b && b.words) ? b.words.length : 0; 
-            htmlStr += `<option value="bs-${i}-all" style="font-weight:bold; color:var(--primary);">📘 单词书：${b.name} ${b.vol} (全 ${bsCount} 词)</option>`;
-            
-            if (b.words && b.words.length > 0) {
-                let unitMap = {}; 
-                for(let j=0; j<b.words.length; j++) { 
-                    let u = b.words[j].unit || "未分类单元"; 
-                    if(!unitMap[u]) unitMap[u] = 0; 
-                    unitMap[u]++; 
-                }
-                for (let unitName in unitMap) { 
-                    htmlStr += `<option value="bs-${i}-unit-${unitName}">&emsp;&emsp;├─ 单元：${unitName} (${unitMap[unitName]} 词)</option>`; 
-                }
-            }
-        }
-    }
-    sel.innerHTML = htmlStr;
-}
-
-function openGameSetup(type, title) {
-    if(!requireAuth()) return;
-    currentGameType = type; 
-    let titleEl = document.getElementById('setup-g-title'); 
-    if(titleEl) titleEl.innerText = title;
-    
-    populateLibSource(); 
-    setGameMode('lib'); 
-    openModal('modal-game-setup');
-}
-
-function setGameMode(mode) {
-    currentGameMode = mode; 
-    let btnLib = document.getElementById('btn-mode-lib'); 
-    let btnCus = document.getElementById('btn-mode-custom'); 
-    let areaLib = document.getElementById('setup-lib-area'); 
-    let areaCus = document.getElementById('setup-custom-area');
-    
-    if(mode === 'lib') { 
-        if(btnLib) btnLib.className = 'btn'; 
-        if(btnCus) btnCus.className = 'btn btn-outline'; 
-        if(areaCus) areaCus.classList.add('hidden'); 
-        if(areaLib) areaLib.classList.remove('hidden'); 
-    } else { 
-        if(btnLib) btnLib.className = 'btn btn-outline'; 
-        if(btnCus) btnCus.className = 'btn'; 
-        if(areaCus) areaCus.classList.remove('hidden'); 
-        if(areaLib) areaLib.classList.add('hidden'); 
-    }
-}
-
-async function startGameExec() {
-    try {
-        if(currentGameMode === 'lib') {
-            const selEl = document.getElementById('sel-lib-source'); 
-            if(!selEl) return;
-            const sourceVal = selEl.value; 
-            let selectedWords = [];
-            
-            if (sourceVal === 'all') {
-                if(notebook) selectedWords = selectedWords.concat(notebook);
-                if(bookshelf && Array.isArray(bookshelf)) { 
-                    for(let i=0; i<bookshelf.length; i++) { 
-                        if(bookshelf[i] && bookshelf[i].words) selectedWords = selectedWords.concat(bookshelf[i].words); 
-                    } 
-                }
-            } else if (sourceVal === 'nb') {
-                if(notebook) selectedWords = selectedWords.concat(notebook);
-            } else if (sourceVal.startsWith('bs-')) {
-                const parts = sourceVal.split('-'); 
-                const bIdx = parseInt(parts[1]);
-                if (bookshelf[bIdx] && bookshelf[bIdx].words) {
-                    if (parts[2] === 'all') { 
-                        selectedWords = selectedWords.concat(bookshelf[bIdx].words); 
-                    } else if (parts[2] === 'unit') {
-                        const targetUnit = parts.slice(3).join('-');
-                        for(let i=0; i<bookshelf[bIdx].words.length; i++) { 
-                            let w = bookshelf[bIdx].words[i]; 
-                            let u = w.unit || "未分类单元"; 
-                            if(u === targetUnit) selectedWords.push(w); 
-                        }
-                    }
-                }
-            }
-            
-            let uniqueMap = new Map();
-            for(let i=0; i<selectedWords.length; i++) { 
-                let w = selectedWords[i]; 
-                if(w && w.word) uniqueMap.set(w.word.toLowerCase(), w); 
-            }
-            let finalWords = Array.from(uniqueMap.values());
-            
-            if(finalWords.length < 5) { 
-                alert(`所选范围的有效单词不足 5 个（当前仅 ${finalWords.length} 个）！\n系统已为您自动补充系统默认词汇，让您可以继续体验游戏。`); 
-                let needed = 5 - finalWords.length;
-                finalWords = finalWords.concat(defaultNotebook.slice(0, needed));
-            }
-            closeModals(); 
-            initGame(currentGameType, finalWords);
-
-        } else {
-            const rawInput = document.getElementById('in-custom-words').value; 
-            let rawItems = rawInput.split(/[\n,，;；]+/); 
-            let items = [];
-            for(let i=0; i<rawItems.length; i++) { 
-                let l = rawItems[i].trim(); 
-                if(l) items.push(l); 
-            }
-            if(items.length < 5) { 
-                alert("为了保证良好的游戏体验，请至少输入 5 个单词！"); 
-                return; 
-            }
-            
-            closeModals(); 
-            document.getElementById('api-loading').style.display = 'flex'; 
-            let customWords = [];
-            
-            for(let i=0; i<items.length; i++) {
-                let line = items[i]; 
-                let parts = line.split(/=| - |:/); 
-                let w = parts[0].trim(); 
-                if(!w) continue;
-                
-                let cn = ''; 
-                if(parts.length > 1) { 
-                    parts.shift(); 
-                    cn = parts.join(' ').trim(); 
-                }
-                
-                if(cn) { 
-                    customWords.push({ word: w, cn: cn, en: '', id: Date.now() + Math.random() }); 
-                } else { 
-                    const info = await fetchInfo(w); 
-                    customWords.push(info); 
-                }
-            }
-            
-            document.getElementById('api-loading').style.display = 'none'; 
-            document.getElementById('in-custom-words').value = '';
-            initGame(currentGameType, customWords);
-        }
-    } catch(err) {
-        document.getElementById('api-loading').style.display = 'none';
-        alert("启动游戏时发生异常：" + err.message);
-    }
-}
-
-// =========================================================================
-// 3. 结算大屏系统
-// =========================================================================
-// 🏆 单机游戏结算
-window.showGameOver = () => {
-    clearGameTimers();
-    const stage = document.getElementById('g-content');
-    stage.innerHTML = `
-        <div style="text-align: center; padding: 40px; animation: pop 0.5s ease-out;">
-            <div style="font-size: 6rem; margin-bottom: 20px;">🎖️</div>
-            <h2 style="font-size: 2.8rem; color: var(--text); margin-bottom: 10px;">练习完成</h2>
-            <div style="background: var(--primary-light); display: inline-block; padding: 20px 50px; border-radius: 20px; margin-bottom: 40px; border: 2px solid #c7d2fe;">
-                <div style="font-size: 1.2rem; color: var(--text); font-weight:bold; margin-bottom: 5px;">最终得分</div>
-                <div style="font-size: 3.5rem; color: var(--primary); font-weight: 900;">${score}</div>
-            </div>
-            <br>
-            <button class="btn btn-outline" style="margin-right: 15px;" onclick="showPage('games')">返回大厅</button>
-            <button class="btn" onclick="window.replayGame()">🔄 再来一局</button>
+<nav>
+    <div class="logo" onclick="showPage('home')">EnglishHub Pro 🚀</div>
+    <div style="display: flex; gap: 30px; align-items: center;">
+        <div class="nav-links">
+            <div class="nav-item active" id="nav-home" onclick="showPage('home')">首页</div>
+            <div class="nav-item" id="nav-listen" onclick="showPage('listen-main')">听力</div>
+            <div class="nav-item" id="nav-read" onclick="showPage('read-main')">阅读</div>
+            <div class="nav-item" id="nav-vocab" onclick="showPage('vocab-main')">词库</div>
+            <div class="nav-item" id="nav-games" onclick="showPage('games')">游戏</div>
+            <div class="nav-item" id="nav-notif" onclick="openNotifModal()" style="display:none;">🔔 消息 <span id="notif-badge" class="badge hidden">0</span></div>
+            <div class="nav-item" id="nav-admin" onclick="showPage('admin')" style="display:none; color: var(--accent);">后台数据 <span id="admin-notif-badge" class="badge hidden" style="right: -10px;">0</span></div>
         </div>
-    `;
-};
+        <div id="nav-user-area" onclick="handleUserNavClick()"></div>
+    </div>
+</nav>
 
-// ⚔️ PK游戏结算
-window.showPKGameOver = (rScore, bScore, msg) => {
-    clearGameTimers();
-    let winnerText = "";
-    if(rScore > bScore) winnerText = "🔴 红队获胜！";
-    else if(bScore > rScore) winnerText = "🔵 蓝队获胜！";
-    else winnerText = "🤝 握手言和！平局！";
-
-    const stage = document.getElementById('g-content');
-    stage.innerHTML = `
-        <div style="text-align: center; padding: 40px; animation: pop 0.5s ease-out; width: 100%; max-width: 800px;">
-            <div style="font-size: 5rem; margin-bottom: 20px;">🏁</div>
-            <h2 style="font-size: 3rem; color: var(--text); margin-bottom: 10px;">${winnerText}</h2>
-            <p style="color: var(--text-light); font-size: 1.2rem; margin-bottom: 30px;">${msg}</p>
-            <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 40px;">
-                <div style="background: #fef2f2; padding: 20px 40px; border-radius: 20px; border: 2px solid #fca5a5; flex: 1;">
-                    <div style="font-size: 1.2rem; color: #ef4444; font-weight:bold;">🔴 红队得分</div>
-                    <div style="font-size: 4rem; color: #ef4444; font-weight: 900;">${rScore}</div>
+<div class="container">
+    
+    <div id="p-profile" class="view hidden">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 40px;">个人资料与学习足迹</h1>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px;">
+            <div class="read-container">
+                <h2 style="color: var(--primary); margin-top: 0;">⚙️ 账号设置</h2>
+                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px dashed var(--border);">
+                    <div id="prof-avatar-display" style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900;">U</div>
+                    <div>
+                        <h2 style="margin: 0; color: var(--text); font-size: 1.8rem;" id="prof-nickname-display">User</h2>
+                        <p style="margin: 8px 0 0 0; color: var(--text-light); font-weight: 700;" id="prof-role-display">👨‍🎓 学生</p>
+                        <p style="margin: 5px 0 0 0; font-size:0.85rem; color: var(--success);" id="prof-expire-display"></p>
+                    </div>
                 </div>
-                <div style="background: #eff6ff; padding: 20px 40px; border-radius: 20px; border: 2px solid #93c5fd; flex: 1;">
-                    <div style="font-size: 1.2rem; color: #3b82f6; font-weight:bold;">🔵 蓝队得分</div>
-                    <div style="font-size: 4rem; color: #3b82f6; font-weight: 900;">${bScore}</div>
+                <label style="font-weight: 800; color: var(--text); display: block; margin-bottom: 10px;">修改昵称 Name</label>
+                <input type="text" id="prof-nickname" placeholder="输入新昵称">
+                <label style="font-weight: 800; color: var(--text); display: block; margin-bottom: 10px; margin-top: 15px;">修改密码 Password (留空则不修改)</label>
+                <input type="password" id="prof-pwd" placeholder="输入新密码">
+                <label style="font-weight: 800; color: var(--text); display: block; margin-bottom: 10px; margin-top: 15px;">自定义头像 Avatar (输入 Emoji 或 1个字母)</label>
+                <input type="text" id="prof-avatar" placeholder="例如：😊 或 A" maxlength="2">
+                <button class="btn" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 1.1rem;" onclick="saveProfile()">保存修改</button>
+                <button class="btn btn-outline" style="width: 100%; margin-top: 15px; border-color: var(--accent); color: var(--accent);" onclick="doLogout()">退出登录 Logout</button>
+            </div>
+            <div class="read-container" style="background: var(--primary-light); border-color: #c7d2fe;">
+                <h2 style="color: var(--primary); margin-top: 0;">📊 云端学习足迹监控</h2>
+                <p style="color: var(--text-light); margin-bottom: 25px;">所有数据已与您的账号绑定，跨设备无缝同步。</p>
+                <div style="background: var(--white); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; color: var(--text);">🎮 游戏测验得分记录</h3>
+                    <div id="prof-game-hist" style="max-height: 200px; overflow-y: auto; font-size: 0.95rem; color: var(--text-light); line-height: 1.8;"></div>
+                </div>
+                <div style="background: var(--white); padding: 20px; border-radius: 15px;">
+                    <h3 style="margin-top: 0; color: var(--text);">📖 阅读与听力追踪</h3>
+                    <div id="prof-read-hist" style="max-height: 200px; overflow-y: auto; font-size: 0.95rem; color: var(--text-light); line-height: 1.8;"></div>
                 </div>
             </div>
-            <button class="btn btn-outline" style="margin-right: 15px;" onclick="showPage('games')">返回大厅</button>
-            <button class="btn" onclick="window.replayGame()">🔄 再战一局</button>
         </div>
-    `;
-};
+    </div>
 
-window.replayGame = () => { 
-    initGame(currentGameType, window.GameState.originalWords); 
-};
+    <div id="p-admin" class="view hidden">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 20px;">👑 系统管理员控制台</h1>
+        <div class="hub-grid" style="margin-bottom: 30px;">
+            <div class="main-card" style="padding: 20px; background: var(--primary); color: white; border: none;">
+                <h2 style="margin:0 0 10px 0; font-size: 1.1rem; opacity: 0.9;">全站总页面浏览量 (PV)</h2>
+                <p id="admin-stat-pv" style="margin:0; font-size: 2.5rem; font-weight: 900; color: white;">0</p>
+            </div>
+            <div class="main-card" style="padding: 20px; background: var(--success); color: white; border: none;">
+                <h2 style="margin:0 0 10px 0; font-size: 1.1rem; opacity: 0.9;">系统总注册用户数</h2>
+                <p id="admin-stat-users" style="margin:0; font-size: 2.5rem; font-weight: 900; color: white;">0</p>
+            </div>
+            <div class="main-card" style="padding: 20px; background: var(--accent); color: white; border: none; cursor: pointer;" onclick="switchAdminTab('msgs')">
+                <h2 style="margin:0 0 10px 0; font-size: 1.1rem; opacity: 0.9;">反馈与留言处理 💬</h2>
+                <p id="admin-stat-msgs" style="margin:0; font-size: 2.5rem; font-weight: 900; color: white;">0</p>
+            </div>
+        </div>
+        <div class="auth-tabs">
+            <div class="auth-tab active" id="tab-admin-users" onclick="switchAdminTab('users')">👥 用户与权限管理</div>
+            <div class="auth-tab" id="tab-admin-msgs" onclick="switchAdminTab('msgs')">💬 社区留言与反馈管理</div>
+        </div>
+        <div class="read-container" id="admin-view-users">
+            <p style="color: var(--text-light); margin-top:0; margin-bottom: 20px;">在此处审查系统用户，修改联系方式或精确调整试用期限。</p>
+            <div style="overflow-x: auto; background: var(--bg); border-radius: 15px; border: 1px solid var(--border);">
+                <table style="width: 100%; border-collapse: collapse; min-width: 900px;">
+                    <thead><tr style="background: var(--primary-light); color: var(--primary); text-align: left;"><th style="padding: 15px; border-bottom: 2px solid var(--border);">账号及联系方式</th><th style="padding: 15px; border-bottom: 2px solid var(--border);">角色</th><th style="padding: 15px; border-bottom: 2px solid var(--border);">指定到期时间 / 延期</th><th style="padding: 15px; border-bottom: 2px solid var(--border);">系统操作</th></tr></thead>
+                    <tbody id="admin-user-list"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="read-container hidden" id="admin-view-msgs">
+            <p style="color: var(--text-light); margin-top:0; margin-bottom: 20px;">处理用户的反馈意见，可以进行工单对话、置顶、或直接发放时长奖励。</p>
+            <div id="admin-msg-list"></div>
+        </div>
+    </div>
 
-// =========================================================================
-// 4. 主游戏引擎 (包含20款游戏)
-// =========================================================================
-function initGame(type, sourceWords) {
-    clearGameTimers(); 
-    showPage('stage'); 
-    score = 0; 
-    updateScore();
-    const stage = document.getElementById('g-content'); 
-    if(!stage) return; 
-    stage.innerHTML = ''; 
-    
-    let gameWords = [...sourceWords].sort(() => 0.5 - Math.random());
-    window.GameState.words = gameWords; 
-    window.GameState.originalWords = sourceWords; 
+    <div id="p-home" class="view">
+        <h1 class="hero-title" style="text-align: center;">Choose Your Journey</h1>
+        <div class="hub-grid">
+            <div class="main-card" onclick="showPage('listen-main')">
+                <span class="card-icon">🎧</span><h2>听力中心</h2><p>听音、点读、听写、测验真题</p>
+            </div>
+            <div class="main-card" onclick="showPage('read-main')">
+                <span class="card-icon">📖</span><h2>阅读中心</h2><p>智能阅读器 & 个人图书馆</p>
+            </div>
+            <div class="main-card" onclick="showPage('vocab-main')">
+                <span class="card-icon">📚</span><h2>词库管理</h2><p>掌握你的多层级词汇系统</p>
+            </div>
+            <div class="main-card" onclick="showPage('games')">
+                <span class="card-icon">🎮</span><h2>单词游戏</h2><p>16款 Wordwall 风格游戏</p>
+            </div>
+        </div>
+        <div class="msg-board">
+            <h2 style="margin-top:0; color: var(--text);">💬 建议与反馈社区</h2>
+            <div style="background: #fffbeb; border-left: 5px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 20px; color: #854d0e; font-weight: 600;">
+                💡 提交您的意见生成专属工单。一经采纳，管理员会私信通知并奖励 <b style="font-size:1.1rem; color: var(--accent);">7天</b> 时长！
+            </div>
+            <textarea id="msg-input" placeholder="写下您的建议或发现的Bug... (需登录后发表)" style="height: 100px;" onclick="requireAuth()"></textarea>
+            <button class="btn" onclick="submitMessage()" style="width: 100%; margin-bottom: 30px;">🚀 提交反馈意见</button>
+            <div id="msg-list"></div>
+        </div>
+    </div>
 
-    const renderPKScoreBoard = (rScore, bScore, extraHtml = '') => {
-        return `
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; max-width:800px; margin-bottom:20px; background:var(--white); padding:15px 30px; border-radius:20px; border: 2px solid var(--border);">
-                <div style="font-size:1.8rem; font-weight:900; color:#ef4444;">🔴 红队: <span>${rScore}</span></div>
-                ${extraHtml}
-                <div style="font-size:1.8rem; font-weight:900; color:#3b82f6;">🔵 蓝队: <span>${bScore}</span></div>
-            </div>`;
-    };
-
-    // -------------------------------------------------------------
-    // ⚔️ 4 款对战 PK 游戏
-    // -------------------------------------------------------------
-    if(type === 'pk_horse') {
-        document.getElementById('g-title').innerText = "🐎 赛马冲刺 (接力)";
-        window.GameState.redScore = 0; window.GameState.blueScore = 0; window.GameState.turn = 'red'; window.GameState.timeLeft = 30; window.GameState.horseQueue = [...gameWords, ...gameWords];
-        window.renderHorseTurn = () => {
-            if(window.GameState.timeLeft <= 0) {
-                clearInterval(window.horseTimer); window.horseTimer = null;
-                if(window.GameState.turn === 'red') { 
-                    alert("⏱️ 红队时间到！轮到蓝队！"); 
-                    window.GameState.turn = 'blue'; 
-                    window.GameState.timeLeft = 30; 
-                    window.renderHorseTurn(); 
-                    return; 
-                } else { 
-                    return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "比赛结束！"); 
-                }
-            }
-            const target = window.GameState.horseQueue.pop(); 
-            if(!target) return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "词库已耗尽！");
-            
-            window.GameState.horseTarget = target; 
-            let wrongs = window.GameState.words.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0, 3); 
-            let options = [target, ...wrongs].sort(()=>0.5-Math.random());
-            let curColor = window.GameState.turn === 'red' ? '#ef4444' : '#3b82f6'; 
-            let curName = window.GameState.turn === 'red' ? '🔴 红队' : '🔵 蓝队';
-            
-            stage.innerHTML = `
-                ${renderPKScoreBoard(window.GameState.redScore, window.GameState.blueScore)}
-                <div style="width:100%; max-width:800px; text-align:center;">
-                    <div style="font-size: 2rem; color: ${curColor}; font-weight: 900; margin-bottom: 10px;">现在是 ${curName} 的回合！</div>
-                    <div style="font-size: 3rem; margin-bottom: 20px;">⏱️ <span id="horse-timer" style="color:var(--accent);">${window.GameState.timeLeft}</span> 秒</div>
-                    <h2 style="font-size:3.5rem; margin-bottom:30px; color:var(--text);">${target.word}</h2>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">${options.map(o => `<button class="quiz-option" style="padding:20px; font-size:1.3rem;" onclick="window.horseAnswer('${o.id}')">${o.cn}</button>`).join('')}</div>
-                </div>`;
-            speak(target.word);
-            
-            if(!window.horseTimer) {
-                window.horseTimer = setInterval(() => { 
-                    window.GameState.timeLeft--; 
-                    let tEl = document.getElementById('horse-timer'); 
-                    if(tEl) tEl.innerText = window.GameState.timeLeft; 
-                    if(window.GameState.timeLeft <= 0) window.renderHorseTurn(); 
-                }, 1000);
-                gameTimers.push(window.horseTimer);
-            }
-        };
-        window.horseAnswer = (id) => {
-            if(String(id) === String(window.GameState.horseTarget.id)) { 
-                window.GameState.turn === 'red' ? window.GameState.redScore += 10 : window.GameState.blueScore += 10; 
-            } else { 
-                window.GameState.turn === 'red' ? window.GameState.redScore -= 5 : window.GameState.blueScore -= 5; 
-            }
-            window.renderHorseTurn();
-        }; 
-        window.renderHorseTurn();
-    }
-    else if(type === 'pk_tug') {
-        document.getElementById('g-title').innerText = "⚔️ 单词拔河";
-        window.GameState.pkQueue = [...gameWords]; 
-        window.GameState.redScore = 0; 
-        window.GameState.blueScore = 0; 
-        window.GameState.pkPos = 50; 
-        
-        window.nextPKTug = () => {
-            if(window.GameState.pkPos <= 10) return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "力量压制！蓝队获胜！");
-            if(window.GameState.pkPos >= 90) return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "力量压制！红队获胜！");
-            if(window.GameState.pkQueue.length === 0) return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "体力耗尽！");
-            
-            const target = window.GameState.pkQueue.pop(); 
-            window.GameState.pkTarget = target;
-            let wrongs = window.GameState.words.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0, 3); 
-            window.GameState.pkOptions = [target, ...wrongs].sort(()=>0.5-Math.random());
-            
-            stage.innerHTML = `
-                ${renderPKScoreBoard(window.GameState.redScore, window.GameState.blueScore)}
-                <div style="width:100%; max-width:800px; text-align:center;">
-                    <div style="width:100%; height:40px; background:#e2e8f0; border-radius:20px; position:relative; overflow:hidden; margin-bottom:40px; border: 3px solid #cbd5e1;">
-                        <div style="position:absolute; left:0; top:0; bottom:0; background:rgba(239, 68, 68, 0.2); width:50%;"></div><div style="position:absolute; right:0; top:0; bottom:0; background:rgba(59, 130, 246, 0.2); width:50%;"></div>
-                        <div style="position:absolute; left:${window.GameState.pkPos}%; top:-10px; width:6px; height:60px; background:var(--text); transition: left 0.3s; box-shadow: 0 0 10px rgba(0,0,0,0.5);"></div>
+    <div id="p-listen-main" class="view hidden">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 40px;">听力全矩阵训练</h1>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 30px; align-items: start;">
+            <div class="read-container" style="text-align: center; padding: 30px; grid-column: 1 / -1;">
+                <h2 style="color: var(--primary); margin-top: 0;">🎧 智能音频播放器</h2>
+                <input type="file" id="audio-upload" accept="audio/*" class="btn-outline" style="width: 100%; max-width: 400px; padding: 12px; margin-bottom: 10px; border-radius: 15px; cursor: pointer;" onclick="if(!requireAuth()) event.preventDefault();">
+                <audio id="audio-element" hidden></audio>
+                <div style="background: var(--bg); padding: 25px; border-radius: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); max-width: 800px; margin: 0 auto;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <span id="audio-current" style="font-weight: 600; color: var(--text-light); min-width: 50px;">00:00</span>
+                        <input type="range" id="audio-progress" value="0" min="0" max="100" step="0.1" style="flex: 1; padding: 0; border: none; margin: 0; cursor: pointer; height: 6px; background: var(--border);">
+                        <span id="audio-total" style="font-weight: 600; color: var(--text-light); min-width: 50px;">00:00</span>
                     </div>
-                    <h2 style="font-size:4rem; margin-bottom: 20px;">${target.word}</h2>
-                    <div style="display:flex; justify-content:space-between; gap:20px;">
-                        <button class="btn" style="background:#ef4444; flex:1; padding:30px; font-size:1.5rem;" onclick="window.pkTugBuzz('red')">🔴 红队抢答</button>
-                        <button class="btn" style="background:#3b82f6; flex:1; padding:30px; font-size:1.5rem;" onclick="window.pkTugBuzz('blue')">🔵 蓝队抢答</button>
-                    </div>
-                    <div id="pk-tug-opts" class="hidden" style="margin-top:30px; display:grid; grid-template-columns:1fr 1fr; gap:15px;"></div>
-                </div>`; 
-            speak(target.word);
-        };
-        window.pkTugBuzz = (team) => {
-            let optsHtml = window.GameState.pkOptions.map(o => `<button class="quiz-option" style="padding: 20px; font-size:1.3rem;" onclick="window.pkTugAnswer('${team}', '${o.id}')">${o.cn}</button>`).join('');
-            const optArea = document.getElementById('pk-tug-opts'); 
-            optArea.innerHTML = `<h3 style="grid-column: 1/-1; color: ${team==='red'?'#ef4444':'#3b82f6'};">请 ${team==='red'?'红队':'蓝队'} 选择：</h3>` + optsHtml; 
-            optArea.classList.remove('hidden');
-        };
-        window.pkTugAnswer = (team, id) => {
-            if(String(id) === String(window.GameState.pkTarget.id)) { 
-                if(team === 'red') { window.GameState.pkPos += 15; window.GameState.redScore += 10; } 
-                else { window.GameState.pkPos -= 15; window.GameState.blueScore += 10; } 
-            } else { 
-                if(team === 'red') { window.GameState.pkPos -= 10; window.GameState.redScore -= 5; } 
-                else { window.GameState.pkPos += 10; window.GameState.blueScore -= 5; } 
-            }
-            window.nextPKTug();
-        }; 
-        window.nextPKTug();
-    }
-    else if(type === 'pk_territory') {
-        document.getElementById('g-title').innerText = "🗺️ 阵地抢夺";
-        window.GameState.terQueue = [...gameWords]; 
-        window.GameState.redScore = 0; 
-        window.GameState.blueScore = 0; 
-        window.GameState.grid = [0,0,0, 0,0,0, 0,0,0]; 
-        window.GameState.terTurn = 'red';
-        
-        window.checkTerWin = () => { 
-            let g = window.GameState.grid; 
-            let lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; 
-            for(let l of lines) { 
-                if(g[l[0]]!==0 && g[l[0]]===g[l[1]] && g[l[1]]===g[l[2]]) return g[l[0]]===1 ? 'red' : 'blue'; 
-            } 
-            if(!g.includes(0)) return 'draw'; 
-            return null; 
-        };
-        window.renderTer = () => {
-            let win = window.checkTerWin();
-            if(win === 'red') return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "🔴 红队连成一线！");
-            if(win === 'blue') return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "🔵 蓝队连成一线！");
-            if(win === 'draw') return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "阵地已满，势均力敌！");
-            if(window.GameState.terQueue.length === 0) return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "单词耗尽！");
-            
-            const target = window.GameState.terQueue.pop(); 
-            window.GameState.terTarget = target;
-            let wrongs = window.GameState.words.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0, 3); 
-            window.GameState.terOptions = [target, ...wrongs].sort(()=>0.5-Math.random());
-            
-            let gridHtml = window.GameState.grid.map((cell, idx) => { 
-                let color = cell===1 ? '#ef4444' : cell===2 ? '#3b82f6' : '#e2e8f0'; 
-                let cursor = cell===0 ? 'pointer' : 'not-allowed'; 
-                return `<div onclick="window.terPickGrid(${idx})" style="background:${color}; border-radius:10px; height:80px; display:flex; align-items:center; justify-content:center; color:white; font-size:2rem; font-weight:bold; cursor:${cursor};">${cell===1?'🔴':cell===2?'🔵':''}</div>`; 
-            }).join('');
-            
-            let turnText = window.GameState.terTurn === 'red' ? "<span style='color:#ef4444;'>🔴 红队回合</span>" : "<span style='color:#3b82f6;'>🔵 蓝队回合</span>";
-            stage.innerHTML = `
-                ${renderPKScoreBoard(window.GameState.redScore, window.GameState.blueScore, `<div style="font-size:1.2rem;">当前: ${turnText}</div>`)}
-                <div style="display:flex; gap:40px; width:100%; max-width:800px; align-items:flex-start;">
-                    <div style="flex:1; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; background:var(--white); padding:20px; border-radius:20px; border:2px solid var(--border);">${gridHtml}</div>
-                    <div style="flex:1; text-align:center;">
-                        <h3 style="color:var(--text-light);">请 ${turnText} 选择要占领的空格：</h3>
-                        <div id="ter-question-area" class="hidden">
-                            <h2 style="font-size:3rem; margin-bottom: 20px;">${target.word}</h2>
-                            <div id="ter-opts" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <button class="btn" id="btn-play-pause" onclick="if(requireAuth()) toggleAudioPlay()" style="width: 120px;">▶ 播放</button>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-weight: 700; color: var(--text);">倍速:</span>
+                            <select id="audio-speed" onchange="changeAudioSpeed()" style="width: 80px; padding: 5px; margin: 0;">
+                                <option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1.0" selected>1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option>
+                            </select>
                         </div>
-                    </div>
-                </div>`; 
-            speak(target.word);
-        };
-        window.terPickGrid = (idx) => {
-            if(window.GameState.grid[idx] !== 0) return; 
-            window.GameState.terPendingGrid = idx;
-            let optsHtml = window.GameState.terOptions.map(o => `<button class="quiz-option" onclick="window.terAnswer('${o.id}')">${o.cn}</button>`).join('');
-            document.getElementById('ter-opts').innerHTML = optsHtml; 
-            document.getElementById('ter-question-area').classList.remove('hidden');
-        };
-        window.terAnswer = (id) => {
-            let team = window.GameState.terTurn;
-            if(String(id) === String(window.GameState.terTarget.id)) { 
-                window.GameState.grid[window.GameState.terPendingGrid] = team === 'red' ? 1 : 2; 
-                team === 'red' ? window.GameState.redScore += 10 : window.GameState.blueScore += 10; 
-            } else { 
-                alert("❌ 答错啦，失去机会！"); 
-                team === 'red' ? window.GameState.redScore -= 5 : window.GameState.blueScore -= 5; 
-            }
-            window.GameState.terTurn = window.GameState.terTurn === 'red' ? 'blue' : 'red'; 
-            window.renderTer();
-        }; 
-        window.renderTer();
-    }
-    else if(type === 'pk_bomb') {
-        document.getElementById('g-title').innerText = "💣 炸弹传花";
-        window.GameState.bombQueue = [...gameWords]; 
-        window.GameState.bombTime = 15; 
-        window.GameState.bombHolder = 'red'; 
-        window.GameState.redScore = 100; 
-        window.GameState.blueScore = 100;
-        
-        window.renderBomb = () => {
-            if(window.GameState.bombQueue.length === 0) return window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, "平局！炸弹成了哑炮。");
-            
-            const target = window.GameState.bombQueue.pop(); 
-            window.GameState.bombTarget = target;
-            let wrongs = gameWords.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0, 3); 
-            let options = [target, ...wrongs].sort(()=>0.5-Math.random());
-            let holderColor = window.GameState.bombHolder === 'red' ? '#ef4444' : '#3b82f6'; 
-            let holderName = window.GameState.bombHolder === 'red' ? '🔴 红队' : '🔵 蓝队';
-            
-            stage.innerHTML = `
-                ${renderPKScoreBoard("生命:"+window.GameState.redScore, "生命:"+window.GameState.blueScore)}
-                <div style="text-align:center; width:100%; max-width:600px;">
-                    <div style="font-size: 5rem; animation: pulse-btn ${window.GameState.bombTime/10}s infinite;">💣</div>
-                    <h2 style="font-size:3rem; color:var(--text); margin:20px 0;">倒计时: <span id="bomb-timer" style="color:var(--accent);">${window.GameState.bombTime}</span>s</h2>
-                    <h3 style="color:${holderColor}; font-size:1.5rem;">炸弹在 ${holderName} 手中！快答对传给对方！</h3>
-                    <h2 style="font-size: 2.5rem; margin: 30px 0;">${target.word}</h2>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">${options.map(o => `<button class="quiz-option" onclick="window.bombAnswer('${o.id}')">${o.cn}</button>`).join('')}</div>
-                </div>`; 
-            speak(target.word);
-            
-            if(!window.bombInterval) {
-                window.bombInterval = setInterval(() => {
-                    window.GameState.bombTime--; 
-                    let tEl = document.getElementById('bomb-timer'); 
-                    if(tEl) tEl.innerText = window.GameState.bombTime;
-                    if(window.GameState.bombTime <= 0) {
-                        clearInterval(window.bombInterval); window.bombInterval = null;
-                        if(window.GameState.bombHolder === 'red') { window.GameState.redScore -= 20; } else { window.GameState.blueScore -= 20; }
-                        let winner = window.GameState.bombHolder === 'red' ? '🔵 蓝队' : '🔴 红队';
-                        window.showPKGameOver(window.GameState.redScore, window.GameState.blueScore, `💥 炸弹爆炸！${winner} 获胜！`);
-                    }
-                }, 1000); 
-                gameTimers.push(window.bombInterval);
-            }
-        };
-        window.bombAnswer = (id) => {
-            if(String(id) === String(window.GameState.bombTarget.id)) { 
-                window.GameState.bombHolder = window.GameState.bombHolder === 'red' ? 'blue' : 'red'; 
-                window.GameState.bombTime += 3; 
-                if(window.GameState.bombTime > 15) window.GameState.bombTime = 15; 
-            } else { 
-                window.GameState.bombTime -= 3; 
-                alert("❌ 答错加速燃烧！"); 
-            }
-            window.renderBomb();
-        }; 
-        window.renderBomb();
-    }
-
-    // -------------------------------------------------------------
-    // 🎮 16 款单机闯关游戏
-    // -------------------------------------------------------------
-    else if(type === 'match') {
-        document.getElementById('g-title').innerText = "🧩 连连看"; 
-        window.GameState.matchQueue = [...gameWords];
-        window.nextMatchBatch = () => {
-            if (window.GameState.matchQueue.length === 0) return window.showGameOver();
-            let batch = window.GameState.matchQueue.splice(0, 6); 
-            window.GameState.matchBatchTarget = batch.length; 
-            window.GameState.matchBatchCurrent = 0;
-            let cards = []; 
-            batch.forEach(w => { 
-                cards.push({id: w.id, val: w.word, type: 'en'}); 
-                cards.push({id: w.id, val: w.cn, type: 'cn'}); 
-            }); 
-            cards.sort(() => 0.5 - Math.random());
-            let htmlStr = `<div style="text-align:right; width:100%; margin-bottom:10px; font-weight:bold;">剩余排队: ${window.GameState.matchQueue.length}</div><div class="match-grid">`;
-            cards.forEach(c => { 
-                htmlStr += `<div class="match-card" data-id="${c.id}" data-type="${c.type}" onclick="handleMatch(this)">${c.val}</div>`; 
-            }); 
-            htmlStr += '</div>'; 
-            stage.innerHTML = htmlStr;
-        }; 
-        window.nextMatchBatch();
-    }
-    else if(type === 'memory') {
-        document.getElementById('g-title').innerText = "🎴 翻牌记忆"; 
-        window.GameState.memoryQueue = [...gameWords];
-        window.nextMemoryBatch = () => {
-            if(window.GameState.memoryQueue.length === 0) return window.showGameOver();
-            let batch = window.GameState.memoryQueue.splice(0, 4); 
-            window.GameState.memoryBatchTarget = batch.length; 
-            window.GameState.memoryBatchCurrent = 0;
-            let cards = []; 
-            batch.forEach(w => { 
-                cards.push({id: w.id, val: w.word, type: 'en'}); 
-                cards.push({id: w.id, val: w.cn, type: 'cn'}); 
-            }); 
-            cards.sort(() => 0.5 - Math.random());
-            let htmlStr = `<div style="text-align:right; width:100%; margin-bottom:10px; font-weight:bold;">剩余排队: ${window.GameState.memoryQueue.length}</div><div class="match-grid">`;
-            cards.forEach(c => { 
-                htmlStr += `<div class="memory-card" data-id="${c.id}" onclick="handleMemory(this)"><div class="memory-inner"><div class="memory-front">?</div><div class="memory-back">${c.val}</div></div></div>`; 
-            }); 
-            htmlStr += '</div>'; 
-            stage.innerHTML = htmlStr;
-        }; 
-        window.nextMemoryBatch();
-    }
-    else if(type === 'flash') {
-        document.getElementById('g-title').innerText = "🃏 闪卡"; 
-        window.GameState.curFlash = 0; 
-        window.GameState.flashWords = [...gameWords];
-        window.drawFlash = () => {
-            if(window.GameState.curFlash >= window.GameState.flashWords.length) return window.showGameOver();
-            let cur = window.GameState.curFlash; 
-            const w = window.GameState.flashWords[cur];
-            stage.innerHTML = `
-                <div class="memory-card" style="width:300px; height:400px;" onclick="this.classList.toggle('flipped'); speak('${w.word}')">
-                    <div class="memory-inner">
-                        <div class="memory-front" style="font-size:2.5rem; background:white; color:var(--primary); border:2px solid var(--primary);">${w.word}</div>
-                        <div class="memory-back" style="flex-direction:column; background:var(--primary); color:white;">
-                            <h3 style="margin:0; font-size:2rem;">${w.cn}</h3>
-                            <p style="font-size:1.1rem; opacity:0.8; padding:0 20px;">${w.en}</p>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-weight: 700; color: var(--text);">音量:</span>
+                            <input type="range" id="audio-volume" min="0" max="1" step="0.05" value="1" style="width: 80px; padding: 0; border: none; margin: 0; cursor: pointer; height: 6px; background: var(--border);">
                         </div>
                     </div>
                 </div>
-                <div style="margin-top:30px; display:flex; align-items:center; justify-content:center; gap:20px;">
-                    <span style="color:var(--text-light); font-weight:bold;">${cur+1} / ${window.GameState.flashWords.length}</span>
-                    <button class="btn" onclick="score+=5; updateScore(); window.GameState.curFlash++; window.drawFlash()">下一个 Next</button>
-                </div>`;
-        }; 
-        window.drawFlash();
-    }
-    else if(type === 'speed') {
-        document.getElementById('g-title').innerText = "⚡ 极速闪读"; 
-        window.GameState.speedQueue = [...gameWords];
-        window.nextSpeed = () => {
-            if(window.GameState.speedQueue.length === 0) return window.showGameOver();
-            const target = window.GameState.speedQueue.pop(); 
-            let wrongs = gameWords.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0,3); 
-            let options = [target, ...wrongs].sort(()=>0.5-Math.random());
-            let optHtml = options.map(o => `<button class="quiz-option" onclick="if('${o.id}'==='${target.id}'){score+=15;updateScore();window.nextSpeed();}else{alert('❌ 错了');}">${o.cn}</button>`).join('');
-            
-            stage.innerHTML = `
-                <div style="text-align:right; width:100%; max-width:500px; color:var(--text-light); font-weight:bold; margin-bottom:10px;">剩余单词: ${window.GameState.speedQueue.length}</div>
-                <div id="speed-word" style="font-size:4rem; font-weight:900; color:var(--primary); margin-bottom:50px;">${target.word}</div>
-                <div id="speed-opts" class="hidden" style="width:100%; max-width:500px;">${optHtml}</div>`;
-            
-            speak(target.word); 
-            setTimeout(() => { 
-                let wEl = document.getElementById('speed-word'); 
-                let oEl = document.getElementById('speed-opts'); 
-                if(wEl) wEl.classList.add('hidden'); 
-                if(oEl) oEl.classList.remove('hidden'); 
-            }, 800);
-        }; 
-        window.nextSpeed();
-    }
-    else if(type === 'anagram') {
-        document.getElementById('g-title').innerText = "🔀 字母重排"; 
-        window.GameState.anaQueue = [...gameWords];
-        window.nextAnagram = () => {
-            if(window.GameState.anaQueue.length === 0) return window.showGameOver();
-            const target = window.GameState.anaQueue.pop(); 
-            window.GameState.anagramTarget = target.word; 
-            window.GameState.anagramGuess = "";
-            let letters = target.word.split('').sort(() => 0.5 - Math.random()); 
-            let tilesHtml = '';
-            for(let i=0; i<letters.length; i++) { 
-                let l = letters[i]; 
-                tilesHtml += `<div class="key-btn" onclick="window.handleAnagramClick(this, '${l}')">${l}</div>`; 
-            }
-            stage.innerHTML = `
-                <h2 style="font-size: 2rem; color: var(--text-light);">${target.cn}</h2>
-                <div id="ana-guess" style="height: 60px; font-size: 2.5rem; font-weight: 900; color: var(--primary); margin: 20px 0; border-bottom: 3px solid var(--border); min-width: 200px; text-align: center;"></div>
-                <div class="keyboard" id="ana-tiles">${tilesHtml}</div>
-                <div style="margin-top: 30px;">
-                    <button class="btn btn-outline" onclick="window.nextAnagram()">跳过 Skip</button>
-                </div>`;
-        };
-        window.handleAnagramClick = (el, letter) => {
-            window.GameState.anagramGuess += letter; 
-            document.getElementById('ana-guess').innerText = window.GameState.anagramGuess; 
-            el.style.visibility = 'hidden'; 
-            let guess = window.GameState.anagramGuess; 
-            let target = window.GameState.anagramTarget;
-            
-            if(guess.length === target.length) { 
-                if(guess.toLowerCase() === target.toLowerCase()) { 
-                    score += 15; 
-                    updateScore(); 
-                    setTimeout(window.nextAnagram, 500); 
-                } else { 
-                    alert('拼错了，重试！'); 
-                    window.GameState.anagramGuess = ''; 
-                    document.getElementById('ana-guess').innerText = ''; 
-                    let tiles = document.getElementById('ana-tiles').children; 
-                    for(let i=0; i<tiles.length; i++) { tiles[i].style.visibility = 'visible'; } 
-                } 
-            }
-        }; 
-        window.nextAnagram();
-    }
-    else if(type === 'hangman') {
-        document.getElementById('g-title').innerText = "🔤 经典猜词"; 
-        const alphabet = "abcdefghijklmnopqrstuvwxyz".split(''); 
-        window.GameState.hmQueue = [...gameWords];
-        window.nextHangman = () => { 
-            if(window.GameState.hmQueue.length === 0) return window.showGameOver(); 
-            const targetObj = window.GameState.hmQueue.pop(); 
-            window.GameState.hmTarget = targetObj.word.toLowerCase(); 
-            window.GameState.hmGuessed = []; 
-            window.GameState.hmMistakes = 0; 
-            window.renderHangmanBoard(); 
-        };
-        window.renderHangmanBoard = () => {
-            let target = window.GameState.hmTarget; 
-            let guessed = window.GameState.hmGuessed; 
-            let mistakes = window.GameState.hmMistakes; 
-            let wordParts = []; 
-            let isWin = true;
-            
-            for(let i=0; i<target.length; i++) { 
-                let char = target[i]; 
-                if(guessed.includes(char)) { 
-                    wordParts.push(char); 
-                } else { 
-                    wordParts.push('_'); 
-                    isWin = false; 
-                } 
-            }
-            if(isWin) { 
-                score += 20; updateScore(); setTimeout(window.nextHangman, 800); return; 
-            } 
-            if(mistakes >= 6) { 
-                alert(`Game Over! 单词是: ${target}`); window.nextHangman(); return; 
-            }
-            
-            let keysHtml = ''; 
-            for(let i=0; i<alphabet.length; i++) { 
-                let a = alphabet[i]; 
-                let dis = guessed.includes(a) ? 'disabled' : ''; 
-                keysHtml += `<button class="key-btn ${dis}" onclick="window.handleHangmanKey('${a}')">${a.toUpperCase()}</button>`; 
-            }
-            stage.innerHTML = `
-                <h3 style="color: var(--accent); font-size:1.5rem;">剩余生命: ${6 - mistakes} ❤️</h3>
-                <div style="font-size: 3rem; font-weight: 900; letter-spacing: 15px; margin: 40px 0;">${wordParts.join('')}</div>
-                <div class="keyboard" style="max-width:600px;">${keysHtml}</div>`;
-        };
-        window.handleHangmanKey = (l) => { 
-            window.GameState.hmGuessed.push(l); 
-            if(!window.GameState.hmTarget.includes(l)) { window.GameState.hmMistakes++; } 
-            window.renderHangmanBoard(); 
-        }; 
-        window.nextHangman();
-    }
-    else if(type === 'chain') {
-        document.getElementById('g-title').innerText = "🔗 单词接龙"; 
-        window.GameState.chainLast = gameWords[0].word; 
-        window.GameState.chainTarget = gameWords.length; 
-        window.GameState.chainCurrent = 0;
-        window.renderChain = () => {
-            let last = window.GameState.chainLast; 
-            let reqChar = last.slice(-1).toUpperCase();
-            stage.innerHTML = `
-                <h3 style="font-size:2.5rem; margin-bottom: 20px;">上个单词: <span style="color:var(--primary)">${last}</span></h3>
-                <p style="color: var(--text-light); margin-bottom: 20px;">请输入以 "${reqChar}" 开头的单词</p>
-                <input id="chain-in" style="font-size:1.5rem; text-align:center; max-width:400px;">
-                <button class="btn" style="display:block; margin:20px auto; width: 100%; max-width:400px;" onclick="window.checkChain()">提交</button>
-                <p>进度: ${window.GameState.chainCurrent} / ${window.GameState.chainTarget}</p>`;
-        };
-        window.checkChain = () => { 
-            let el = document.getElementById('chain-in'); 
-            if(!el) return; 
-            let input = el.value.toLowerCase().trim(); 
-            let last = window.GameState.chainLast.toLowerCase(); 
-            if(input.startsWith(last.slice(-1)) && input.length > 1) { 
-                window.GameState.chainLast = input; 
-                score += 5; updateScore(); 
-                window.GameState.chainCurrent++; 
-                if(window.GameState.chainCurrent >= window.GameState.chainTarget) return window.showGameOver(); 
-                window.renderChain(); 
-            } else { 
-                alert("❌ 首字母不匹配或太短！"); 
-            } 
-        }; 
-        window.renderChain();
-    }
-    else if(type === 'typing') {
-        document.getElementById('g-title').innerText = "⌨️ 打字防守"; 
-        window.GameState.typeQueue = [...gameWords]; 
-        window.GameState.activeTypeWords = [];
-        stage.innerHTML = `
-            <div id="type-area" style="position:relative; width:100%; height:400px; border-bottom:2px dashed var(--accent); overflow:hidden;"></div>
-            <input id="type-in" placeholder="快速输入落下的单词并回车..." style="font-size:1.5rem; text-align:center; margin-top:20px; max-width:400px;" onkeyup="if(event.key==='Enter') window.checkType()">`;
-        
-        window.spawnTypeWord = () => { 
-            if(window.GameState.typeQueue.length === 0) return; 
-            const w = window.GameState.typeQueue.pop(); 
-            const el = document.createElement('div'); 
-            el.className = 'type-word'; 
-            el.innerText = w.word; 
-            el.style.left = Math.random() * 80 + '%'; 
-            el.style.top = '-50px'; 
-            let area = document.getElementById('type-area'); 
-            if(area) { 
-                area.appendChild(el); 
-                window.GameState.activeTypeWords.push({el: el, word: w.word.toLowerCase(), top: -50}); 
-            } 
-        };
-        window.checkType = () => { 
-            let inEl = document.getElementById('type-in'); 
-            if(!inEl) return; 
-            const val = inEl.value.toLowerCase().trim(); 
-            const idx = window.GameState.activeTypeWords.findIndex(a => a.word === val); 
-            if(idx > -1) { 
-                score += 10; updateScore(); 
-                window.GameState.activeTypeWords[idx].el.remove(); 
-                window.GameState.activeTypeWords.splice(idx,1); 
-                inEl.value = ''; 
-            } 
-        };
-        gameTimers.push(setInterval(window.spawnTypeWord, 2500));
-        gameTimers.push(setInterval(() => { 
-            if(window.GameState.typeQueue.length === 0 && window.GameState.activeTypeWords.length === 0) return window.showGameOver(); 
-            let arr = window.GameState.activeTypeWords; 
-            for(let i=0; i<arr.length; i++) { 
-                let a = arr[i]; a.top += 1.5; a.el.style.top = a.top + 'px'; 
-                if(a.top > 380) { alert('Game Over! 单词落地了: ' + a.word); exitGame(); return; } 
-            } 
-        }, 50));
-    }
-    else if(type === 'whack') {
-        document.getElementById('g-title').innerText = "🔨 打地鼠"; 
-        window.GameState.moleQueue = [...gameWords]; 
-        let holesHtml = ''; 
-        for(let i=0; i<6; i++) { holesHtml += '<div class="hole"><div class="mole"></div></div>'; }
-        
-        stage.innerHTML = `
-            <div style="display:flex; justify-content:space-between; width:100%; max-width:500px; margin-bottom:20px; align-items:center;">
-                <button class="btn" id="play-mole-btn" style="font-size:1.2rem;">🔊 播放发音找地鼠</button>
             </div>
-            <div class="mole-grid">${holesHtml}</div>`;
-        
-        window.GameState.moleTarget = null;
-        window.nextMole = () => { 
-            if(window.GameState.moleQueue.length === 0) return window.showGameOver(); 
-            let t = window.GameState.moleQueue.pop(); 
-            window.GameState.moleTarget = t; 
-            let btn = document.getElementById('play-mole-btn'); 
-            if(btn) btn.onclick = () => speak(t.word); 
-            speak(t.word); 
-        }; 
-        window.nextMole();
-        
-        gameTimers.push(setInterval(() => { 
-            if(!window.GameState.moleTarget) return; 
-            let moles = document.querySelectorAll('.mole'); 
-            if(moles.length === 0) return; 
-            const m = moles[Math.floor(Math.random() * 6)]; 
-            const isTarget = Math.random() > 0.5; 
-            const w = isTarget ? window.GameState.moleTarget : gameWords[Math.floor(Math.random() * gameWords.length)]; 
-            
-            m.innerText = w.cn; m.classList.add('up'); 
-            m.onclick = () => { 
-                if(w.id === window.GameState.moleTarget.id) { 
-                    score+=10; updateScore(); m.classList.remove('up'); m.onclick=null; window.nextMole(); 
-                } else { 
-                    m.classList.remove('up'); m.onclick=null; 
-                } 
-            }; 
-            setTimeout(() => { m.classList.remove('up'); m.onclick=null; }, 1500); 
-        }, 1800));
-    }
-    else if(type === 'balloon') {
-        document.getElementById('g-title').innerText = "🎈 气球爆破"; 
-        window.GameState.balloonQueue = [...gameWords];
-        stage.innerHTML = `<h2 id="balloon-target" style="z-index:10; background:rgba(255,255,255,0.9); padding:15px 40px; border-radius:30px; box-shadow:var(--shadow);"></h2><div id="balloon-area" class="balloon-area"></div>`;
-        
-        window.GameState.balloonTarget = null;
-        window.nextBalloonTarget = () => { 
-            if(window.GameState.balloonQueue.length === 0) return window.showGameOver(); 
-            let t = window.GameState.balloonQueue.pop(); 
-            window.GameState.balloonTarget = t; 
-            let el = document.getElementById('balloon-target'); 
-            if(el) el.innerText = "击破气球: " + t.cn; 
-        }; 
-        window.nextBalloonTarget();
-        
-        gameTimers.push(setInterval(() => { 
-            if(!window.GameState.balloonTarget) return; 
-            const isTarget = Math.random() > 0.5; 
-            const w = isTarget ? window.GameState.balloonTarget : gameWords[Math.floor(Math.random() * gameWords.length)]; 
-            const b = document.createElement('div'); 
-            
-            b.className = 'balloon'; b.innerText = w.word; 
-            b.style.left = Math.random() * 80 + '%'; 
-            b.style.animationDuration = (Math.random() * 3 + 4) + 's'; 
-            b.onclick = () => { 
-                if(w.id === window.GameState.balloonTarget.id) { 
-                    score += 15; updateScore(); b.remove(); window.nextBalloonTarget(); 
-                } else { 
-                    b.style.background = 'red'; 
-                } 
-            }; 
-            let area = document.getElementById('balloon-area'); 
-            if(area) { 
-                area.appendChild(b); 
-                setTimeout(() => { if(b.parentNode) b.remove(); }, 7000); 
-            } 
-        }, 1500));
-    }
-    else if(type === 'wheel') {
-        document.getElementById('g-title').innerText = "🎡 幸运转盘"; 
-        window.GameState.wheelQueue = [...gameWords];
-        stage.innerHTML = `
-            <div id="wheel" class="wheel-display">?</div>
-            <button class="btn" style="font-size:1.5rem; padding:15px 40px;" onclick="window.spinWheel()">Spin 旋转抽取</button>
-            <h2 id="wheel-res" style="margin-top:40px; font-size:2rem;"></h2>`;
-            
-        window.spinWheel = () => { 
-            if(window.GameState.wheelQueue.length === 0) return window.showGameOver(); 
-            const wheel = document.getElementById('wheel'); 
-            if(!wheel) return; 
-            
-            let count = 0; 
-            let interval = setInterval(() => { 
-                wheel.innerText = gameWords[Math.floor(Math.random() * gameWords.length)].word; 
-                wheel.style.transform = `scale(${1 + Math.random()*0.2})`; 
-                if(++count > 20) { 
-                    clearInterval(interval); 
-                    wheel.style.transform = 'scale(1)'; 
-                    wheel.style.background = 'var(--primary)'; 
-                    wheel.style.color = 'white'; 
-                    const res = window.GameState.wheelQueue.pop(); 
-                    wheel.innerText = res.word; 
-                    
-                    let resEl = document.getElementById('wheel-res'); 
-                    if(resEl && res) { 
-                        resEl.innerText = res.cn; 
-                        speak(res.word); 
-                        score += 5; updateScore(); 
-                    } 
-                    if(window.GameState.wheelQueue.length === 0) setTimeout(window.showGameOver, 2000); 
-                } 
-            }, 100); 
-        };
-    }
-    else if(type === 'box') {
-        document.getElementById('g-title').innerText = "🎁 盲盒挑战"; 
-        window.GameState.boxQueue = [...gameWords];
-        window.nextBoxBatch = () => {
-            if(window.GameState.boxQueue.length === 0) return window.showGameOver();
-            let batch = window.GameState.boxQueue.splice(0, 6); 
-            window.GameState.boxBatchTarget = batch.length; 
-            window.GameState.boxBatchCurrent = 0; 
-            window.GameState.boxBatchWords = batch;
-            let boxesHtml = batch.map((w, i) => `<div class="blind-box" data-idx="${i}" onclick="window.openBox(this)">${i+1}</div>`).join('');
-            stage.innerHTML = `<div class="box-grid">${boxesHtml}</div>`;
-        };
-        window.openBox = (el) => { 
-            if(el.classList.contains('opened')) return; 
-            let idx = parseInt(el.dataset.idx); 
-            const w = window.GameState.boxBatchWords[idx]; 
-            el.classList.add('opened'); 
-            el.innerHTML = `<div style="font-size:1.8rem; font-weight:bold;">${w.cn}</div><div style="font-size:1.1rem; margin-top:5px;">${w.word}</div>`; 
-            speak(w.word); score += 5; updateScore(); 
-            window.GameState.boxBatchCurrent++; 
-            if(window.GameState.boxBatchCurrent >= window.GameState.boxBatchTarget) setTimeout(window.nextBoxBatch, 1500); 
-        }; 
-        window.nextBoxBatch();
-    }
-    else if(type === 'quiz') {
-        document.getElementById('g-title').innerText = "🎯 经典测验"; 
-        window.GameState.quizQueue = [...gameWords];
-        window.nextQuiz = () => { 
-            if(window.GameState.quizQueue.length === 0) return window.showGameOver();
-            const target = window.GameState.quizQueue.pop(); 
-            let wrongs = gameWords.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0, 3); 
-            let options = [target, ...wrongs].sort(()=>0.5-Math.random()); 
-            let optsHtml = options.map(o => `<button class="quiz-option" style="padding:20px;" onclick="if('${o.id}'==='${target.id}'){score+=10;updateScore();window.nextQuiz();}else{alert('❌ 错了');}">${o.word}</button>`).join(''); 
-            stage.innerHTML = `<h2 style="font-size:3rem; margin-bottom:40px; color:var(--primary);">${target.cn}</h2><div style="width:100%; max-width:500px;">${optsHtml}</div>`; 
-            speak(target.word); 
-        }; 
-        window.nextQuiz();
-    }
-    else if(type === 'truefalse') {
-        document.getElementById('g-title').innerText = "⚖️ 判断对错"; 
-        window.GameState.tfQueue = [...gameWords];
-        window.nextTF = () => { 
-            if(window.GameState.tfQueue.length === 0) return window.showGameOver();
-            const w1 = window.GameState.tfQueue.pop(); 
-            const w2 = gameWords[Math.floor(Math.random() * gameWords.length)]; 
-            const isTrue = Math.random() > 0.5; 
-            const displayCn = isTrue ? w1.cn : w2.cn; 
-            
-            stage.innerHTML = `
-                <h2 style="font-size:3.5rem; color:var(--primary); margin:0;">${w1.word}</h2>
-                <h3 style="font-size:2rem; color:var(--text-light); margin:20px 0 50px 0;">释义: ${displayCn}</h3>
-                <div style="display:flex; gap:20px;">
-                    <button class="btn" style="background:var(--success); font-size:1.8rem; padding:20px 40px;" onclick="window.checkTF(${isTrue}, true)">True ✔️</button>
-                    <button class="btn" style="background:var(--accent); font-size:1.8rem; padding:20px 40px;" onclick="window.checkTF(${isTrue}, false)">False ✖️</button>
-                </div>`; 
-            speak(w1.word); 
-        }; 
-        window.checkTF = (actual, guess) => { 
-            if(actual === guess) { score += 10; updateScore(); window.nextTF(); } 
-            else { alert('❌ 错啦'); } 
-        }; 
-        window.nextTF();
-    }
-    else if(type === 'missing') {
-        document.getElementById('g-title').innerText = "📝 释义填空"; 
-        window.GameState.missingQueue = [...gameWords];
-        window.nextMissing = () => { 
-            if(window.GameState.missingQueue.length === 0) return window.showGameOver();
-            const target = window.GameState.missingQueue.pop(); 
-            const hint = target.en ? target.en : target.cn; 
-            let wrongs = gameWords.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0, 3); 
-            let options = [target, ...wrongs].sort(()=>0.5-Math.random()); 
-            let optsHtml = options.map(o => `<button class="quiz-option" style="padding:20px;" onclick="if('${o.id}'==='${target.id}'){score+=10;updateScore();window.nextMissing();}else{alert('❌ 错了');}">${o.word}</button>`).join(''); 
-            
-            stage.innerHTML = `
-                <h2 style="font-size:2rem; color:var(--text); line-height:1.5; margin-bottom:40px; text-align:center; max-width:800px;">" ${hint} "</h2>
-                <div style="width:100%; max-width:600px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">${optsHtml}</div>`; 
-        }; 
-        window.nextMissing();
-    }
-    else if(type === 'listen') {
-        document.getElementById('g-title').innerText = "🎧 纯正盲听"; 
-        window.GameState.listenQueue = [...gameWords];
-        window.nextListen = () => { 
-            if(window.GameState.listenQueue.length === 0) return window.showGameOver();
-            const target = window.GameState.listenQueue.pop(); 
-            let wrongs = gameWords.filter(w => w.id !== target.id).sort(()=>0.5-Math.random()).slice(0, 3); 
-            let options = [target, ...wrongs].sort(()=>0.5-Math.random()); 
-            let optsHtml = options.map(o => `<button class="quiz-option" style="padding:20px;" onclick="if('${o.id}'==='${target.id}'){score+=15;updateScore();window.nextListen();}else{alert('❌ 错了');}">${o.cn}</button>`).join(''); 
-            
-            stage.innerHTML = `
-                <button class="btn" style="font-size:5rem; padding:40px 60px; border-radius:30px; margin-bottom:50px; box-shadow:var(--shadow);" onclick="speak('${target.word}')">🔊</button>
-                <div style="width:100%; max-width:600px;">${optsHtml}</div>`; 
-            speak(target.word); 
-        }; 
-        window.nextListen();
-    }
-}
+            <div class="read-container" style="padding: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; color: var(--text);">📖 配套重点词汇</h2>
+                    <button class="btn btn-outline" style="padding: 6px 15px; font-size: 0.9rem;" onclick="if(requireAuth()) document.getElementById('l-vocab-setup').classList.toggle('hidden')">配置词汇</button>
+                </div>
+                <div id="l-vocab-setup" class="hidden" style="margin-bottom: 20px;">
+                    <textarea id="l-vocab-input" placeholder="输入本段音频的核心词汇（用逗号或换行隔开）..." style="height: 80px;"></textarea>
+                    <button class="btn" onclick="parseListenVocab()" style="width: 100%;">生成词汇列表</button>
+                </div>
+                <div id="l-vocab-display" style="display: flex; flex-wrap: wrap; gap: 10px; min-height: 50px;"><p style="text-align:center; color: var(--text-light); width: 100%; margin: 0;">暂无配置重点词汇。</p></div>
+            </div>
+            <div class="read-container" style="padding: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; color: var(--text);">📝 互动同步字幕</h2>
+                    <button class="btn btn-outline" style="padding: 6px 15px; font-size: 0.9rem;" onclick="if(requireAuth()) document.getElementById('sub-input-area').classList.toggle('hidden')">配置</button>
+                </div>
+                <div id="sub-input-area" class="hidden">
+                    <textarea id="subtitles-input" placeholder="粘贴带时间戳的字幕 (支持 LRC/SRT 格式)。&#10;[00:01.50] Hello and welcome." style="height: 120px; border-radius: 15px;"></textarea>
+                    <button class="btn" onclick="parseSubtitles()" style="width: 100%; margin-bottom: 20px;">生成高亮点读字幕</button>
+                </div>
+                <div id="subtitle-display" style="max-height: 300px; overflow-y: auto; background: var(--bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border); scroll-behavior: smooth;"><p style="text-align:center; color: var(--text-light); margin: 0;">暂无字幕，请在上方配置并生成。</p></div>
+            </div>
+            <div class="read-container" style="padding: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: var(--text);">🎙️ 录音跟读 (影子训练)</h2>
+                </div>
+                <div style="background: var(--bg); padding: 30px; border-radius: 15px; border: 1px solid var(--border); text-align: center;">
+                    <p style="color: var(--text-light); margin-bottom: 20px;">听完原音后，点击下方按钮录制自己的发音，回放寻找差距。</p>
+                    <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="btn" id="btn-record-start" onclick="if(requireAuth()) startRecording()" style="background: var(--accent);"><span style="margin-right: 5px;">⏺</span> 开始录音</button>
+                        <button class="btn btn-outline" id="btn-record-stop" onclick="stopRecording()" disabled style="opacity: 0.5;">⏹ 停止</button>
+                    </div>
+                    <div id="recording-status" style="color: var(--accent); font-weight: bold; margin-bottom: 20px; height: 20px;"></div>
+                    <audio id="audio-playback" controls style="width: 100%; max-width: 400px; outline: none; border-radius: 20px;"></audio>
+                </div>
+            </div>
+            <div class="read-container" style="padding: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; color: var(--text);">🔄 听音排序</h2>
+                    <button class="btn btn-outline" style="padding: 6px 15px; font-size: 0.9rem;" onclick="if(requireAuth()) document.getElementById('sort-setup-area').classList.toggle('hidden')">配置</button>
+                </div>
+                <div id="sort-setup-area" class="hidden" style="margin-bottom: 25px;">
+                    <textarea id="sort-input-text" placeholder="按正确顺序粘贴段落（每行一段），系统会自动打乱：&#10;First paragraph.&#10;Second paragraph." style="height: 120px; border-radius: 15px; background: var(--primary-light); font-size: 1.1rem; line-height: 1.6;"></textarea>
+                    <button class="btn" onclick="generateSorting()" style="width: 100%; margin-top: 10px;">打乱并生成排序题</button>
+                </div>
+                <div id="sort-display" style="background: var(--bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border);"><p style="text-align:center; color: var(--text-light); margin: 0; font-size: 1.1rem;">暂无排序题，请点击右上角配置。</p></div>
+                <button class="btn hidden" id="btn-submit-sort" onclick="submitSorting()" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 1.1rem;">提交排序验证</button>
+                <div id="sort-result" class="hidden" style="margin-top: 25px; padding: 20px; font-weight: 900; font-size: 1.3rem; text-align: center; border-radius: 15px; background: var(--primary-light);"></div>
+            </div>
+            <div class="read-container" style="padding: 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0; color: var(--text);">✍️ 听写比对训练</h2>
+                    <button class="btn btn-outline" style="padding: 6px 15px; font-size: 0.9rem;" onclick="if(requireAuth()) document.getElementById('dict-ref-area').classList.toggle('hidden')">答案</button>
+                </div>
+                <div id="dict-ref-area" class="hidden" style="margin-bottom: 20px;">
+                    <textarea id="dict-ref" placeholder="粘贴标准参考原文（不填则默认比对左侧字幕）..." style="height: 80px; border-radius: 15px; background: var(--primary-light);"></textarea>
+                </div>
+                <textarea id="dict-usr" placeholder="听音频，在这里拼写你听到的句子（自动忽略标点和大小写）..." style="height: 120px; border-radius: 15px; font-size: 1.1rem; line-height: 1.6;" onclick="requireAuth()"></textarea>
+                <button class="btn" onclick="compareDictation()" style="width: 100%; margin-bottom: 20px;">比对验证</button>
+                <div id="dict-result-container" class="hidden" style="background: var(--bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border);">
+                    <div id="dict-result"></div>
+                    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--text-light); display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <span><span style="color:var(--success); font-weight:bold;">●</span> 正确</span>
+                        <span><span style="color:var(--warning); font-weight:bold;">●</span> 微瑕</span>
+                        <span><span style="color:var(--accent); text-decoration:line-through; font-weight:bold;">abc</span> 漏听</span>
+                        <span><span style="color:#f97316; border-bottom: 2px dashed #f97316; font-weight:bold;">abc</span> 多听</span>
+                    </div>
+                </div>
+            </div>
+            <div class="read-container" style="padding: 30px; grid-column: 1 / -1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: var(--text);">🧩 听音填空 (精听挖词)</h2>
+                    <button class="btn btn-outline" style="padding: 6px 15px; font-size: 0.9rem;" onclick="if(requireAuth()) document.getElementById('cloze-setup-area').classList.toggle('hidden')">配置挖空文本</button>
+                </div>
+                <div id="cloze-setup-area" class="hidden" style="margin-bottom: 25px;">
+                    <textarea id="cloze-input-text" placeholder="请粘贴原文，并用方括号 [答案] 标记要挖去的单词。&#10;支持同义词/多答案（用 | 分隔），例如：&#10;It was a [beautiful|gorgeous] day, and the [birds] were singing." style="height: 150px; border-radius: 15px; background: var(--primary-light); font-size: 1.1rem; line-height: 1.6; font-family: monospace;"></textarea>
+                    <button class="btn" onclick="parseClozeTest()" style="width: 100%; margin-top: 10px;">生成填空练习卡片</button>
+                </div>
+                <div id="cloze-display" style="background: var(--bg); padding: 30px; border-radius: 15px; border: 1px solid var(--border); font-size: 1.3rem; line-height: 2.4; color: var(--text);">
+                    <p style="text-align:center; color: var(--text-light); margin: 0; font-size: 1.1rem;">暂无填空题，请点击右上角配置导入原文。</p>
+                </div>
+                <button class="btn hidden" id="btn-submit-cloze" onclick="submitClozeTest()" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 1.1rem;">提交填空答案验证</button>
+                <div id="cloze-result" class="hidden" style="margin-top: 25px; padding: 20px; font-weight: 900; font-size: 1.5rem; text-align: center; border-radius: 15px; background: var(--primary-light);"></div>
+            </div>
+            <div class="read-container" style="padding: 30px; grid-column: 1 / -1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: var(--text);">🎯 听力理解测验 (单选/多选)</h2>
+                    <button class="btn btn-outline" style="padding: 6px 15px; font-size: 0.9rem;" onclick="if(requireAuth()) document.getElementById('quiz-setup-area').classList.toggle('hidden')">配置题库</button>
+                </div>
+                <div id="quiz-setup-area" class="hidden" style="margin-bottom: 25px;">
+                    <textarea id="quiz-input" placeholder="请按以下格式粘贴题目：&#10;Q: What is the main idea?&#10;A. Apple&#10;B. Banana&#10;答案: A&#10;解析: 作者在第一句提到了苹果。" style="height: 200px; border-radius: 15px; background: var(--primary-light); font-family: monospace;"></textarea>
+                    <button class="btn" onclick="parseListeningQuiz()" style="width: 100%; margin-top: 10px;">智能解析并生成考卷</button>
+                </div>
+                <div id="listen-quiz-display" style="background: var(--bg); padding: 30px; border-radius: 15px; border: 1px solid var(--border);">
+                    <p style="text-align:center; color: var(--text-light); margin: 0; font-size: 1.1rem;">暂无题目，请点击右上角配置导入题库。</p>
+                </div>
+                <button class="btn hidden" id="btn-submit-quiz" onclick="submitListeningQuiz()" style="width: 100%; margin-top: 25px; padding: 15px; font-size: 1.1rem;">提交答卷</button>
+                <div id="listen-quiz-result" class="hidden" style="margin-top: 25px; padding: 20px; font-weight: 900; font-size: 1.5rem; text-align: center; border-radius: 15px; background: var(--primary-light);"></div>
+            </div>
+            <div class="read-container" style="padding: 30px; grid-column: 1 / -1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0; color: var(--text);">📓 听力错题本 (自动记录)</h2>
+                    <button class="btn btn-outline" style="padding: 6px 15px; font-size: 0.9rem; border-color: var(--accent); color: var(--accent);" onclick="if(requireAuth()) clearListenErrors()">清空记录</button>
+                </div>
+                <div id="l-errors-display" style="display: flex; flex-direction: column; gap: 15px;"></div>
+            </div>
+        </div>
+    </div>
 
-// =========================================================================
-// 5. 辅助与卡片翻转逻辑
-// =========================================================================
-window.handleMatch = function(el) {
-    if(el.style.visibility === 'hidden' || selectedCards.includes(el)) return; 
-    el.classList.add('selected'); 
-    selectedCards.push(el);
-    if(selectedCards.length === 2) { 
-        const a = selectedCards[0]; 
-        const b = selectedCards[1]; 
-        if(a.dataset.id === b.dataset.id && a.dataset.type !== b.dataset.type) { 
-            setTimeout(() => { 
-                a.style.visibility='hidden'; 
-                b.style.visibility='hidden'; 
-                score += 15; updateScore(); 
-                window.GameState.matchBatchCurrent++; 
-                if(window.GameState.matchBatchCurrent >= window.GameState.matchBatchTarget) setTimeout(window.nextMatchBatch, 500); 
-            }, 300); 
-        } else { 
-            setTimeout(() => { a.classList.remove('selected'); b.classList.remove('selected'); }, 500); 
-        } 
-        selectedCards = []; 
-    }
-};
+    <div id="p-read-main" class="view hidden">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 40px;">阅读中心</h1>
+        <div class="hub-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="main-card" onclick="showPage('read-smart')">
+                <span class="card-icon">✍️</span><h2>智能阅读器</h2><p>粘贴文字，享受沉浸式取词体验</p>
+            </div>
+            <div class="main-card" onclick="showPage('read-library')">
+                <span class="card-icon">🏛️</span><h2>个人图书馆</h2><p>管理并调阅你的所有文献素材</p>
+            </div>
+        </div>
+    </div>
+    <div id="p-read-smart" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div><div class="back-link" onclick="showPage('read-main')">← 返回阅读中心</div><h1 style="margin:0;">智能阅读器</h1></div>
+            <button class="btn btn-outline" onclick="resetReader()">重新导入</button>
+        </div>
+        <div class="read-container">
+            <div id="read-input-view">
+                <textarea id="read-in" placeholder="在此粘贴你的英文文章内容..." style="height:250px; border:none; border-bottom:1px solid var(--border); border-radius:0;"></textarea>
+                <button class="btn" style="width:100%; margin-top:20px;" onclick="processRead()">生成沉浸式阅读</button>
+            </div>
+            <div id="read-display" class="hidden"></div>
+        </div>
+    </div>
+    <div id="p-read-library" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div><div class="back-link" onclick="showPage('read-main')">← 返回阅读中心</div><h1 style="margin:0;">个人图书馆</h1></div>
+            <button class="btn" onclick="if(requireAuth()) openModal('modal-add-article')">+ 收藏新文章</button>
+        </div>
+        <div class="hub-grid" id="ui-library-list"></div>
+    </div>
 
-window.handleMemory = function(el) {
-    if(el.classList.contains('flipped') || el.classList.contains('matched') || flippedCards.length >= 2) return; 
-    el.classList.add('flipped'); 
-    flippedCards.push(el);
-    if(flippedCards.length === 2) { 
-        const a = flippedCards[0]; 
-        const b = flippedCards[1]; 
-        if(a.dataset.id === b.dataset.id) { 
-            setTimeout(() => { 
-                a.classList.add('matched'); 
-                b.classList.add('matched'); 
-                score += 20; updateScore(); 
-                flippedCards=[]; 
-                window.GameState.memoryBatchCurrent++; 
-                if(window.GameState.memoryBatchCurrent >= window.GameState.memoryBatchTarget) setTimeout(window.nextMemoryBatch, 800); 
-            }, 500); 
-        } else { 
-            setTimeout(() => { a.classList.remove('flipped'); b.classList.remove('flipped'); flippedCards=[]; }, 800); 
-        } 
+    <div id="p-vocab-main" class="view hidden">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 40px;">词库管理中心</h1>
+        <div class="hub-grid-3">
+            <div class="main-card" onclick="showPage('vocab-nb')">
+                <span class="card-icon">🧡</span><h2>生词本</h2><p>批量添加，AI自动解析发音</p>
+            </div>
+            <div class="main-card" onclick="showPage('vocab-bs')">
+                <span class="card-icon">📘</span><h2>单词本</h2><p>书-册-单元系统管理</p>
+            </div>
+            <div class="main-card" style="border-color: var(--primary); background: var(--primary-light);" onclick="showPage('vocab-srs')">
+                <span class="card-icon">🧠</span><h2 style="color: var(--primary);">智能背单词 (抗遗忘)</h2><p style="color: var(--primary);">艾宾浩斯智能排期，科学掌握</p>
+            </div>
+        </div>
+    </div>
+    <div id="p-vocab-nb" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div><div class="back-link" onclick="showPage('vocab-main')">← 返回词库中心</div><h1 style="margin:0;">我的生词本</h1></div>
+            <button class="btn" onclick="if(requireAuth()) openModal('modal-add-nb')">+ 批量导入新词</button>
+        </div>
+        <div id="ui-nb-list"></div>
+    </div>
+    <div id="p-vocab-bs" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div><div class="back-link" onclick="showPage('vocab-main')">← 返回词库中心</div><h1 style="margin:0;">系统单词本</h1></div>
+            <button class="btn" onclick="if(requireAuth()) openModal('modal-add-book')">+ 新建词书</button>
+        </div>
+        <div class="hub-grid" id="ui-book-grid"></div>
+    </div>
+    <div id="p-book-detail" class="view hidden">
+        <div class="vocab-header" style="align-items: flex-end;">
+            <div><div class="back-link" onclick="showPage('vocab-bs')">← 返回系统词书</div><h1 id="detail-title" style="margin:0; color:var(--primary);">词书详情</h1></div>
+            <button class="btn" onclick="if(requireAuth()) openModal('modal-add-unit-words')">+ 导入单元单词</button>
+        </div>
+        <div id="ui-book-words"></div>
+    </div>
+
+    <div id="p-vocab-srs" class="view hidden">
+        <div class="back-link" onclick="showPage('vocab-main')">← 返回词库中心</div>
+        <h1 class="hero-title" style="text-align: left; margin-bottom: 20px;">智能背单词系统</h1>
+        <p style="color: var(--text-light); margin-bottom: 40px; font-size: 1.1rem;">根据您的记忆曲线，在 12h, 24h, 3天, 7天, 14天 时刻安排复习，直到完全掌握。</p>
+        <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+            <div class="srs-stat-box"><div class="srs-stat-label">今日待学/待复习</div><div class="srs-stat-num" id="srs-due-count" style="color: var(--accent);">0</div></div>
+            <div class="srs-stat-box"><div class="srs-stat-label">学习计划总词汇</div><div class="srs-stat-num" id="srs-total-count">0</div></div>
+            <div class="srs-stat-box"><div class="srs-stat-label">已完全掌握 (过14天)</div><div class="srs-stat-num" id="srs-mastered-count" style="color: var(--success);">0</div></div>
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <button class="btn" style="flex: 2; padding: 20px; font-size: 1.3rem;" onclick="startSRSSession()">🚀 开始今天的复习</button>
+            <button class="btn btn-outline" style="flex: 1; padding: 20px; font-size: 1.1rem;" onclick="openImportSRS()">📥 导入单词到计划</button>
+        </div>
+    </div>
+
+    <div id="p-srs-learn" class="view hidden">
+        <div class="vocab-header" style="width: 100%;">
+            <button class="btn btn-outline" onclick="exitSRSSession()">← 暂停并退出</button>
+            <div id="srs-progress" style="font-weight:900; color:var(--text); font-size:1.2rem; background: var(--bg); padding: 8px 15px; border-radius: 12px;">0 / 0</div>
+        </div>
+        <div class="game-stage" style="max-width: 600px; margin: 0 auto; padding: 60px 30px; text-align: center;">
+            <div id="srs-word-display" style="font-size: 3.5rem; font-weight: 900; color: var(--primary); margin-bottom: 10px; cursor: pointer;">Word</div>
+            <div id="srs-phonetic-display" style="font-size: 1.2rem; color: var(--text-light); margin-bottom: 30px;">/wɜːd/</div>
+            <div id="srs-meaning-area" class="hidden" style="margin-bottom: 40px; padding: 25px; background: #f8fafc; border-radius: 15px; border: 2px solid var(--border);">
+                <div id="srs-cn-display" style="font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">单词意思</div>
+                <div id="srs-en-display" style="font-size: 1.05rem; color: var(--text-light); font-style: italic;">English definition</div>
+            </div>
+            <div id="srs-init-btns" style="display: flex; gap: 20px; justify-content: center; width: 100%;">
+                <button class="btn btn-outline" style="flex:1; border-color: var(--accent); color: var(--accent); font-size: 1.2rem; padding: 18px;" onclick="srsReveal('forget')">忘了 ❌</button>
+                <button class="btn" style="flex:1; background: var(--success); font-size: 1.2rem; padding: 18px;" onclick="srsReveal('know')">认识 ✔️</button>
+            </div>
+            <div id="srs-eval-btns" class="hidden" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                <button class="btn btn-outline" style="flex:1; border-color: var(--accent); color: var(--accent);" onclick="srsAnswer('wrong')">记错了 (重学)</button>
+                <button class="btn btn-outline" style="flex:1; border-color: var(--warning); color: var(--warning);" onclick="srsAnswer('hard')">模糊 (+12h)</button>
+                <button class="btn" style="flex:1; background: var(--primary);" onclick="srsAnswer('good')">正确 (延后复习)</button>
+                <button class="btn" style="flex:1; background: var(--success);" onclick="srsAnswer('easy')">太简单 (直接掌握)</button>
+            </div>
+            <div id="srs-next-btn" class="hidden" style="display: flex; justify-content: center; width: 100%;">
+                <button class="btn" style="width: 100%; font-size: 1.2rem; padding: 18px; background: var(--primary);" onclick="srsNext()">记住了，下一个 ➡️</button>
+            </div>
+        </div>
+    </div>
+
+   <div id="p-games" class="view hidden">
+        <div class="back-link" onclick="showPage('home')">← 返回首页</div>
+        <h1 class="hero-title">游戏大厅 Game Hall</h1>
+        
+        <div class="group-header" style="border-left-color: #ef4444; color: #ef4444;">⚔️ 课堂对战游戏 (双人/团队 PK)</div>
+        <div class="hub-grid-4">
+            <div class="main-card" style="border-color: #ef4444; background: #fef2f2;" onclick="initGame('pk_horse', '🐎 赛马冲刺 (限时接力)')"><h2>🐎 赛马冲刺</h2><p>红蓝轮流答，限时比分</p></div>
+            <div class="main-card" style="border-color: #f59e0b; background: #fffbeb;" onclick="initGame('pk_tug', '⚔️ 单词拔河 (双人抢答)')"><h2>⚔️ 单词拔河</h2><p>双人抢答，拉拽绳子</p></div>
+            <div class="main-card" style="border-color: #10b981; background: #ecfdf5;" onclick="initGame('pk_territory', '🗺️ 阵地抢夺 (轮流占地)')"><h2>🗺️ 阵地抢夺</h2><p>答对占地，三连获胜</p></div>
+            <div class="main-card" style="border-color: #8b5cf6; background: #f5f3ff;" onclick="initGame('pk_bomb', '💣 炸弹传花 (接力生存)')"><h2>💣 炸弹传花</h2><p>答对传炸弹，超时淘汰</p></div>
+        </div>
+
+        <div class="group-header" style="margin-top: 50px;">🎮 经典单机练习 (个人闯关)</div>
+        <div class="hub-grid-4">
+            <div class="main-card" onclick="initGame('match', '🧩 连连看')"><h2>🧩 连连看</h2><p>消除相同卡片</p></div>
+            <div class="main-card" onclick="initGame('memory', '🎴 翻牌记忆')"><h2>🎴 翻牌记忆</h2><p>翻牌匹配中英</p></div>
+            <div class="main-card" onclick="initGame('flash', '🃏 闪卡')"><h2>🃏 闪卡</h2><p>基础单词记忆</p></div>
+            <div class="main-card" onclick="initGame('speed', '⚡ 极速闪读')"><h2>⚡ 极速闪读</h2><p>快速四选一</p></div>
+            <div class="main-card" onclick="initGame('anagram', '🔀 字母重排')"><h2>🔀 字母重排</h2><p>打乱重新拼写</p></div>
+            <div class="main-card" onclick="initGame('hangman', '🔤 经典猜词')"><h2>🔤 经典猜词</h2><p>根据字母猜词</p></div>
+            <div class="main-card" onclick="initGame('chain', '🔗 单词接龙')"><h2>🔗 单词接龙</h2><p>首尾字母接力</p></div>
+            <div class="main-card" onclick="initGame('typing', '⌨️ 打字防守')"><h2>⌨️ 打字防守</h2><p>打字消灭单词</p></div>
+            <div class="main-card" onclick="initGame('whack', '🔨 打地鼠')"><h2>🔨 打地鼠</h2><p>听音寻找地鼠</p></div>
+            <div class="main-card" onclick="initGame('balloon', '🎈 气球爆破')"><h2>🎈 气球爆破</h2><p>点破正确气球</p></div>
+            <div class="main-card" onclick="initGame('wheel', '🎡 幸运转盘')"><h2>🎡 幸运转盘</h2><p>随机抽取单词</p></div>
+            <div class="main-card" onclick="initGame('box', '🎁 盲盒')"><h2>🎁 盲盒</h2><p>打开盲盒复习</p></div>
+            <div class="main-card" onclick="initGame('quiz', '🎯 测验')"><h2>🎯 测验</h2><p>经典单项选择</p></div>
+            <div class="main-card" onclick="initGame('truefalse', '⚖️ 判断对错')"><h2>⚖️ 判断对错</h2><p>判断释义真伪</p></div>
+            <div class="main-card" onclick="initGame('missing', '📝 填空')"><h2>📝 填空</h2><p>根据英文选词</p></div>
+            <div class="main-card" onclick="initGame('listen', '🎧 盲听')"><h2>🎧 盲听</h2><p>纯听音辨意</p></div>
+        </div>
+    </div>
+
+    <div id="p-stage" class="view hidden">
+        <div class="vocab-header" style="width: 100%;">
+            <h2 id="g-title" style="margin:0; font-size: 2rem;">Game Title</h2>
+            <div id="g-score" style="font-weight:900; color:var(--accent); font-size:1.5rem;">Score: 0</div>
+            <button class="btn btn-outline" onclick="exitGame()">退出 Quit</button>
+        </div>
+        <div id="g-content" class="game-stage"></div>
+    </div>
+
+</div>
+
+<div class="modal-overlay" id="modal-import-srs">
+    <div class="modal">
+        <div class="modal-close-btn" onclick="closeModals()">×</div>
+        <h2 style="margin-top:0; color: var(--primary);">导入生词到学习计划</h2>
+        <p style="color: var(--text-light); margin-bottom: 20px;">选择一个来源，系统会自动去重并加入背单词大队。</p>
+        <select id="sel-srs-source" style="cursor: pointer; background: white; color: var(--text); padding: 15px; font-size:1.1rem; width:100%; border-radius:15px; border:2px solid var(--border); margin-bottom:20px;"></select>
+        <div style="display:flex; gap:15px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button>
+            <button class="btn" style="flex:1;" onclick="execImportSRS()">确认导入</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-notif">
+    <div class="modal" style="max-width: 500px; padding: 30px;">
+        <div class="modal-close-btn" onclick="closeModals()">×</div>
+        <h2 style="margin-top:0; color: var(--primary);">🔔 我的消息与回复</h2>
+        <div id="notif-list-body" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-chat">
+    <div class="modal" style="max-width: 500px; padding: 30px;">
+        <div class="modal-close-btn" onclick="closeModals()">×</div>
+        <h2 id="chat-title" style="margin-top:0; color: var(--primary);">对话沟通</h2>
+        <div id="chat-history-container" class="chat-container"></div>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="chat-reply-input" placeholder="输入回复内容..." style="margin:0; flex:1;">
+            <button class="btn" onclick="sendChatReply()">发送</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-admin-edit-user">
+    <div class="modal">
+        <div class="modal-close-btn" onclick="closeModals()">×</div>
+        <h2 style="margin-top:0; color: var(--primary);">编辑用户信息</h2>
+        <input type="hidden" id="admin-edit-uid">
+        <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-light);">邮箱账号 (不可改)</label>
+        <input type="text" id="admin-edit-email" disabled style="background: var(--bg); opacity: 0.7;">
+        <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-light);">用户昵称</label>
+        <input type="text" id="admin-edit-nickname">
+        <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-light);">联系方式 (手机号)</label>
+        <input type="text" id="admin-edit-phone" placeholder="请输入手机号">
+        <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-light);">重置密码 (留空则不修改)</label>
+        <input type="text" id="admin-edit-pwd" placeholder="输入新密码">
+        <button class="btn" style="width: 100%; margin-top: 15px; padding: 15px; font-size: 1.1rem;" onclick="saveAdminUserEdit()">保存修改</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-auth">
+    <div class="modal" style="max-width: 400px; padding: 30px; position: relative;">
+        <div class="modal-close-btn" onclick="closeModals()">×</div>
+        <div id="auth-prompt-msg" class="hidden" style="background: #fffbeb; color: #b45309; padding: 12px; border-radius: 12px; font-weight: bold; text-align: center; margin-bottom: 15px;">
+            💡 提示：登录后方可使用该功能，并保存数据以便下次复习
+        </div>
+        <div id="guest-login-top-area" style="margin-bottom: 25px;">
+            <button class="btn btn-guest" onclick="guestLogin()">🚀 一键免注册体验 <br><span style="font-size:0.85rem;font-weight:normal;">(7天全功能免费)</span></button>
+        </div>
+        <div class="auth-tabs" id="auth-tabs-header">
+            <div class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">登录 Login</div>
+            <div class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">注册 Register</div>
+        </div>
+        <div id="form-login">
+            <input type="text" id="login-email" placeholder="邮箱账号 Email">
+            <input type="password" id="login-pwd" placeholder="密码 Password">
+            <div style="text-align: right; margin-top: 5px; margin-bottom: 10px;">
+                <span style="font-size: 0.85rem; color: var(--primary); cursor: pointer; font-weight: bold;" onclick="switchAuthTab('forgot')">忘记密码？找回密码</span>
+            </div>
+            <button class="btn" style="width: 100%; padding: 15px; font-size: 1.1rem;" onclick="doLogin()">立即登录</button>
+        </div>
+        <div id="form-register" class="hidden">
+            <div class="role-selector">
+                <div class="role-option active" id="role-student" onclick="selectRole('student')">👨‍🎓 学生</div>
+                <div class="role-option" id="role-teacher" onclick="selectRole('teacher')">👨‍🏫 教师</div>
+            </div>
+            <input type="text" id="reg-email" placeholder="邮箱账号 Email">
+            <input type="password" id="reg-pwd" placeholder="设置密码 Password">
+            <input type="password" id="reg-pwd2" placeholder="确认密码 Confirm Password">
+            <button class="btn" style="width: 100%; margin-top: 15px; padding: 15px; font-size: 1.1rem;" onclick="doRegister()">完成注册</button>
+        </div>
+        <div id="form-forgot" class="hidden">
+            <h3 style="text-align: center; color: var(--text); margin-top: 0;">找回密码</h3>
+            <p style="font-size: 0.9rem; color: var(--text-light); text-align: center; margin-bottom: 20px;">请输入您注册时的邮箱账号，系统将进行身份验证。</p>
+            <div id="forgot-step-1">
+                <input type="text" id="forgot-email" placeholder="输入注册邮箱 Email">
+                <button class="btn" style="width: 100%; margin-top: 10px; padding: 15px; font-size: 1.1rem;" onclick="sendResetCode()">获取验证码</button>
+            </div>
+            <div id="forgot-step-2" class="hidden">
+                <div style="background: #ecfdf5; color: var(--success); padding: 10px; border-radius: 10px; font-size: 0.9rem; margin-bottom: 15px; text-align: center; font-weight: bold;">✅ 验证码已发送至您的邮箱</div>
+                <input type="text" id="forgot-code" placeholder="输入4位验证码 (如 1234)">
+                <input type="password" id="forgot-new-pwd" placeholder="设置新密码 Password">
+                <button class="btn" style="width: 100%; margin-top: 10px; padding: 15px; font-size: 1.1rem;" onclick="doResetPassword()">确认重置密码</button>
+            </div>
+            <button class="btn-outline" style="width: 100%; margin-top: 10px; border:none;" onclick="switchAuthTab('login')">返回登录</button>
+        </div>
+        <div id="form-admin" class="hidden">
+            <h3 style="text-align: center; color: var(--text); margin-top: 0;">👑 管理员后台通道</h3>
+            <input type="text" id="admin-email" placeholder="Admin Account">
+            <input type="password" id="admin-pwd" placeholder="Admin Password">
+            <button class="btn" style="width: 100%; margin-top: 15px; padding: 15px; font-size: 1.1rem; background: var(--text);" onclick="doAdminLogin()">登录后台</button>
+            <button class="btn-outline" style="width: 100%; margin-top: 10px; border:none;" onclick="switchAuthTab('login')">返回普通登录</button>
+        </div>
+        <div id="auth-footer">
+            <div style="text-align: center; margin-top: 30px; color: var(--text-light); font-size: 0.9rem;">———— 或使用第三方登录 ————</div>
+            <div class="third-party-login">
+                <div class="third-party-btn" onclick="alert('Google Auth 接口调用中...')">🌐 Google</div>
+                <div class="third-party-btn" onclick="alert('WeChat Login 接口调用中...')">💬 微信</div>
+            </div>
+            <div style="position: absolute; bottom: 10px; right: 15px;"><span style="color: #e2e8f0; font-size: 0.7rem; cursor: pointer; user-select: none;" onclick="switchAuthTab('admin')">Admin</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-nb"><div class="modal"><div class="modal-close-btn" onclick="closeModals()">×</div><h2 style="margin-top:0;">批量添加至生词本</h2><textarea id="in-nb-batch" placeholder="输入单词，支持换行或逗号隔开..." style="height:150px; border-radius:15px;"></textarea><div style="display:flex; gap:15px; margin-top:10px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button><button class="btn" style="flex:1;" onclick="processBatchWords('nb')">开始解析</button></div></div></div>
+<div class="modal-overlay" id="modal-add-book"><div class="modal"><div class="modal-close-btn" onclick="closeModals()">×</div><h2 style="margin-top:0;">新建系统词书</h2><input type="text" id="in-b-name" placeholder="书名 (例如：新概念英语)"><input type="text" id="in-b-vol" placeholder="册数 (例如：第一册)"><div style="display:flex; gap:15px; margin-top:10px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button><button class="btn" style="flex:1;" onclick="saveBook()">确认创建</button></div></div></div>
+<div class="modal-overlay" id="modal-add-unit-words"><div class="modal"><div class="modal-close-btn" onclick="closeModals()">×</div><h2 style="margin-top:0;">导入单元单词</h2><input type="text" id="in-u-name" placeholder="单元名称 (例如：Unit 1)"><textarea id="in-u-batch" placeholder="输入单词，支持换行或逗号隔开..." style="height:120px; border-radius:15px;"></textarea><div style="display:flex; gap:15px; margin-top:10px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button><button class="btn" style="flex:1;" onclick="processBatchWords('bs')">解析并归档</button></div></div></div>
+<div class="modal-overlay" id="modal-add-article"><div class="modal"><div class="modal-close-btn" onclick="closeModals()">×</div><h2 style="margin-top:0;">收藏新文章</h2><input type="text" id="in-art-title" placeholder="文章标题 (例如：Steve Jobs Speech)"><textarea id="in-art-content" placeholder="粘贴完整的文章正文内容..." style="height:150px;"></textarea><div style="display:flex; gap:15px; margin-top:10px;"><button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button><button class="btn" style="flex:1;" onclick="saveArticle()">保存至图书馆</button></div></div></div>
+
+<div class="modal-overlay" id="modal-game-setup">
+    <div class="modal">
+        <div class="modal-close-btn" onclick="closeModals()">×</div>
+        <h2 id="setup-g-title" style="margin-top:0; color: var(--primary);">Game Setup</h2>
+        <p style="color: var(--text-light); margin-bottom: 20px;">请选择游戏单词的数据来源：</p>
+        <div style="display:flex; gap:10px; margin-bottom: 20px;">
+            <button class="btn" id="btn-mode-lib" onclick="setGameMode('lib')" style="flex:1;">📚 我的词库</button>
+            <button class="btn btn-outline" id="btn-mode-custom" onclick="setGameMode('custom')" style="flex:1;">✍️ 自定义</button>
+        </div>
+        <div id="setup-lib-area"><select id="sel-lib-source" style="cursor: pointer; background: white; color: var(--text); padding: 15px; font-size:1.1rem; width:100%; border-radius:15px; border:2px solid var(--border);"></select></div>
+        
+        <div id="setup-custom-area" class="hidden">
+            <textarea id="in-custom-words" placeholder="输入自定义单词，支持换行或【逗号/分号】隔开...&#10;例如：apple, banana, orange&#10;带释义格式：apple=苹果, banana=香蕉" style="height:140px; line-height: 1.6;"></textarea>
+        </div>
+        
+        <div style="display:flex; gap:15px; margin-top:20px;">
+            <button class="btn btn-outline" style="flex:1;" onclick="closeModals()">取消</button>
+            <button class="btn" style="flex:1;" onclick="startGameExec()">🚀 开始游戏</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/read.js"></script>
+<script src="js/vocab.js"></script>
+<script src="js/listen.js"></script>
+<script src="js/games.js"></script>
+
+<script>
+    try { 
+        initAuth(); 
+        showPage('home'); 
+    } catch(err) { 
+        console.error("Init Error:", err); 
+        alert("系统启动失败：" + err.message); 
     }
-};
+</script>
+</body>
+</html>
