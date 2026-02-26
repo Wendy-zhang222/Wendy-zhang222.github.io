@@ -387,30 +387,30 @@
         
         <div class="group-header" style="border-left-color: #ef4444; color: #ef4444;">⚔️ 课堂对战游戏 (双人/团队 PK)</div>
         <div class="hub-grid-4">
-            <div class="main-card" style="border-color: #ef4444; background: #fef2f2;" onclick="openGameSetup('pk_horse', '🐎 赛马冲刺 (限时接力)')"><h2>🐎 赛马冲刺</h2><p>红蓝轮流答，限时比分</p></div>
-            <div class="main-card" style="border-color: #f59e0b; background: #fffbeb;" onclick="openGameSetup('pk_tug', '⚔️ 单词拔河 (双人抢答)')"><h2>⚔️ 单词拔河</h2><p>双人抢答，拉拽绳子</p></div>
-            <div class="main-card" style="border-color: #10b981; background: #ecfdf5;" onclick="openGameSetup('pk_territory', '🗺️ 阵地抢夺 (轮流占地)')"><h2>🗺️ 阵地抢夺</h2><p>答对占地，三连获胜</p></div>
-            <div class="main-card" style="border-color: #8b5cf6; background: #f5f3ff;" onclick="openGameSetup('pk_bomb', '💣 炸弹传花 (接力生存)')"><h2>💣 炸弹传花</h2><p>答对传炸弹，超时淘汰</p></div>
+            <div class="main-card" style="border-color: #ef4444; background: #fef2f2;" onclick="initGame('pk_horse', '🐎 赛马冲刺 (限时接力)')"><h2>🐎 赛马冲刺</h2><p>红蓝轮流答，限时比分</p></div>
+            <div class="main-card" style="border-color: #f59e0b; background: #fffbeb;" onclick="initGame('pk_tug', '⚔️ 单词拔河 (双人抢答)')"><h2>⚔️ 单词拔河</h2><p>双人抢答，拉拽绳子</p></div>
+            <div class="main-card" style="border-color: #10b981; background: #ecfdf5;" onclick="initGame('pk_territory', '🗺️ 阵地抢夺 (轮流占地)')"><h2>🗺️ 阵地抢夺</h2><p>答对占地，三连获胜</p></div>
+            <div class="main-card" style="border-color: #8b5cf6; background: #f5f3ff;" onclick="initGame('pk_bomb', '💣 炸弹传花 (接力生存)')"><h2>💣 炸弹传花</h2><p>答对传炸弹，超时淘汰</p></div>
         </div>
 
         <div class="group-header" style="margin-top: 50px;">🎮 经典单机练习 (个人闯关)</div>
         <div class="hub-grid-4">
-            <div class="main-card" onclick="openGameSetup('match', '🧩 连连看')"><h2>🧩 连连看</h2><p>消除相同卡片</p></div>
-            <div class="main-card" onclick="openGameSetup('memory', '🎴 翻牌记忆')"><h2>🎴 翻牌记忆</h2><p>翻牌匹配中英</p></div>
-            <div class="main-card" onclick="openGameSetup('flash', '🃏 闪卡')"><h2>🃏 闪卡</h2><p>基础单词记忆</p></div>
-            <div class="main-card" onclick="openGameSetup('speed', '⚡ 极速闪读')"><h2>⚡ 极速闪读</h2><p>快速四选一</p></div>
-            <div class="main-card" onclick="openGameSetup('anagram', '🔀 字母重排')"><h2>🔀 字母重排</h2><p>打乱重新拼写</p></div>
-            <div class="main-card" onclick="openGameSetup('hangman', '🔤 经典猜词')"><h2>🔤 经典猜词</h2><p>根据字母猜词</p></div>
-            <div class="main-card" onclick="openGameSetup('chain', '🔗 单词接龙')"><h2>🔗 单词接龙</h2><p>首尾字母接力</p></div>
-            <div class="main-card" onclick="openGameSetup('typing', '⌨️ 打字防守')"><h2>⌨️ 打字防守</h2><p>打字消灭单词</p></div>
-            <div class="main-card" onclick="openGameSetup('whack', '🔨 打地鼠')"><h2>🔨 打地鼠</h2><p>听音寻找地鼠</p></div>
-            <div class="main-card" onclick="openGameSetup('balloon', '🎈 气球爆破')"><h2>🎈 气球爆破</h2><p>点破正确气球</p></div>
-            <div class="main-card" onclick="openGameSetup('wheel', '🎡 幸运转盘')"><h2>🎡 幸运转盘</h2><p>随机抽取单词</p></div>
-            <div class="main-card" onclick="openGameSetup('box', '🎁 盲盒')"><h2>🎁 盲盒</h2><p>打开盲盒复习</p></div>
-            <div class="main-card" onclick="openGameSetup('quiz', '🎯 测验')"><h2>🎯 测验</h2><p>经典单项选择</p></div>
-            <div class="main-card" onclick="openGameSetup('truefalse', '⚖️ 判断对错')"><h2>⚖️ 判断对错</h2><p>判断释义真伪</p></div>
-            <div class="main-card" onclick="openGameSetup('missing', '📝 填空')"><h2>📝 填空</h2><p>根据英文选词</p></div>
-            <div class="main-card" onclick="openGameSetup('listen', '🎧 盲听')"><h2>🎧 盲听</h2><p>纯听音辨意</p></div>
+            <div class="main-card" onclick="initGame('match', '🧩 连连看')"><h2>🧩 连连看</h2><p>消除相同卡片</p></div>
+            <div class="main-card" onclick="initGame('memory', '🎴 翻牌记忆')"><h2>🎴 翻牌记忆</h2><p>翻牌匹配中英</p></div>
+            <div class="main-card" onclick="initGame('flash', '🃏 闪卡')"><h2>🃏 闪卡</h2><p>基础单词记忆</p></div>
+            <div class="main-card" onclick="initGame('speed', '⚡ 极速闪读')"><h2>⚡ 极速闪读</h2><p>快速四选一</p></div>
+            <div class="main-card" onclick="initGame('anagram', '🔀 字母重排')"><h2>🔀 字母重排</h2><p>打乱重新拼写</p></div>
+            <div class="main-card" onclick="initGame('hangman', '🔤 经典猜词')"><h2>🔤 经典猜词</h2><p>根据字母猜词</p></div>
+            <div class="main-card" onclick="initGame('chain', '🔗 单词接龙')"><h2>🔗 单词接龙</h2><p>首尾字母接力</p></div>
+            <div class="main-card" onclick="initGame('typing', '⌨️ 打字防守')"><h2>⌨️ 打字防守</h2><p>打字消灭单词</p></div>
+            <div class="main-card" onclick="initGame('whack', '🔨 打地鼠')"><h2>🔨 打地鼠</h2><p>听音寻找地鼠</p></div>
+            <div class="main-card" onclick="initGame('balloon', '🎈 气球爆破')"><h2>🎈 气球爆破</h2><p>点破正确气球</p></div>
+            <div class="main-card" onclick="initGame('wheel', '🎡 幸运转盘')"><h2>🎡 幸运转盘</h2><p>随机抽取单词</p></div>
+            <div class="main-card" onclick="initGame('box', '🎁 盲盒')"><h2>🎁 盲盒</h2><p>打开盲盒复习</p></div>
+            <div class="main-card" onclick="initGame('quiz', '🎯 测验')"><h2>🎯 测验</h2><p>经典单项选择</p></div>
+            <div class="main-card" onclick="initGame('truefalse', '⚖️ 判断对错')"><h2>⚖️ 判断对错</h2><p>判断释义真伪</p></div>
+            <div class="main-card" onclick="initGame('missing', '📝 填空')"><h2>📝 填空</h2><p>根据英文选词</p></div>
+            <div class="main-card" onclick="initGame('listen', '🎧 盲听')"><h2>🎧 盲听</h2><p>纯听音辨意</p></div>
         </div>
     </div>
 
