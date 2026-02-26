@@ -1,7 +1,6 @@
 // js/listen.js
 // =========================================================================
-// 🎧 听力全矩阵训练模块 (每日英语听力 增强版)
-// 包含：IndexedDB音频网盘、文件夹管理、多功能标签页选项卡
+// 🎧 听力全矩阵训练模块 (修复版：强制渲染网盘 UI 与多音频持久化存储)
 // =========================================================================
 
 // =========================================================================
@@ -17,16 +16,17 @@ function getAudioDB() {
         let req = window.indexedDB.open(AUDIO_DB_NAME, 1);
         req.onupgradeneeded = e => { e.target.result.createObjectStore(AUDIO_STORE); };
         req.onsuccess = e => { audioDBInstance = e.target.result; resolve(audioDBInstance); };
-        req.onerror = e => reject(e);
+        req.onerror = e => { alert("本地数据库初始化失败，可能不支持多音频存储。"); reject(e); };
     });
 }
 
 async function saveAudioBlob(id, blob) {
     let db = await getAudioDB();
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         let tx = db.transaction(AUDIO_STORE, "readwrite");
         tx.objectStore(AUDIO_STORE).put(blob, id);
         tx.oncomplete = () => resolve();
+        tx.onerror = (e) => reject(e);
     });
 }
 
@@ -71,27 +71,31 @@ function formatTime(secs) {
 // =========================================================================
 // 3. 动态构建 UI (左侧资源树 + 右侧多标签播放器)
 // =========================================================================
-document.addEventListener('DOMContentLoaded', () => {
+function initListenUI() {
     const view = document.getElementById('p-listen-main');
-    if(!view) return;
+    if(!view) return; // 如果找不到听力页面容器则退出
 
     // 注入选项卡所需的基础样式
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .l-tab { padding: 15px 25px; font-weight: 800; color: var(--text-light); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; font-size: 1.05rem; }
-        .l-tab:hover { color: var(--primary); background: var(--primary-light); }
-        .l-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: white; }
-        .audio-item { padding: 12px 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-bottom: 5px; display:flex; justify-content:space-between; align-items:center; border: 1px solid transparent; }
-        .audio-item:hover { background: var(--primary-light); border-color: #c7d2fe; }
-        .audio-item.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(99,102,241,0.3); }
-        .audio-item.active .text-muted { color: #e0e7ff !important; }
-        .audio-folder-head { padding: 12px 10px; font-weight: 900; color: var(--text); display:flex; justify-content:space-between; cursor:pointer; align-items:center; }
-        .audio-folder-head:hover { color: var(--primary); }
-        .l-tab-pane { display: none; height: 100%; animation: fadein 0.3s; }
-        @keyframes fadein { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    `;
-    document.head.appendChild(style);
+    if (!document.getElementById('listen-tab-style')) {
+        const style = document.createElement('style');
+        style.id = 'listen-tab-style';
+        style.innerHTML = `
+            .l-tab { padding: 15px 25px; font-weight: 800; color: var(--text-light); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: 0.2s; font-size: 1.05rem; }
+            .l-tab:hover { color: var(--primary); background: var(--primary-light); }
+            .l-tab.active { color: var(--primary); border-bottom-color: var(--primary); background: white; }
+            .audio-item { padding: 12px 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; margin-bottom: 5px; display:flex; justify-content:space-between; align-items:center; border: 1px solid transparent; }
+            .audio-item:hover { background: var(--primary-light); border-color: #c7d2fe; }
+            .audio-item.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(99,102,241,0.3); }
+            .audio-item.active .text-muted { color: #e0e7ff !important; }
+            .audio-folder-head { padding: 12px 10px; font-weight: 900; color: var(--text); display:flex; justify-content:space-between; cursor:pointer; align-items:center; }
+            .audio-folder-head:hover { color: var(--primary); }
+            .l-tab-pane { display: none; height: 100%; animation: fadein 0.3s; }
+            @keyframes fadein { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        `;
+        document.head.appendChild(style);
+    }
 
+    // 强制覆盖旧版 HTML，注入网盘菜单结构
     view.innerHTML = `
         <div class="back-link" onclick="showPage('home')" style="margin-bottom:15px; font-size:1.1rem;">← 返回首页</div>
         <div style="display:flex; height: calc(100vh - 120px); min-height: 600px; gap: 20px; align-items: stretch;">
@@ -104,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="btn" style="flex:1; padding:10px; font-size:0.9rem;" onclick="document.getElementById('audio-batch-upload').click()">📥 导入音频</button>
                         <input type="file" id="audio-batch-upload" multiple accept="audio/*" style="display:none;" onchange="handleAudioBatchUpload(this)">
                     </div>
-                    <select id="audio-upload-folder" style="margin-top:15px; width:100%; padding:10px; border-radius:10px; border:2px solid var(--border); font-size:0.95rem; font-weight:bold; color:var(--text);">
+                    <select id="audio-upload-folder" style="margin-top:15px; width:100%; padding:10px; border-radius:10px; border:2px solid var(--border); font-size:0.95rem; font-weight:bold; color:var(--text); cursor:pointer;">
                         </select>
                 </div>
                 <div id="audio-sidebar-list" style="flex: 1; overflow-y: auto; padding: 15px; background: var(--bg);">
@@ -117,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <audio id="audio-element" hidden></audio>
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <h2 id="current-audio-title" style="margin:0; color:var(--text); font-size:1.6rem; font-weight:900;">尚未选择音频</h2>
-                        <button class="btn btn-outline" id="btn-del-audio" style="display:none; padding:6px 15px; font-size:0.85rem; border-color:var(--accent); color:var(--accent);" onclick="deleteCurrentAudio()">🗑️ 删除当前</button>
+                        <button class="btn btn-outline" id="btn-del-audio" style="display:none; padding:6px 15px; font-size:0.85rem; border-color:var(--accent); color:var(--accent);" onclick="deleteCurrentAudio()">🗑️ 删除当前音频</button>
                     </div>
                     
                     <div style="display: flex; align-items: center; gap: 15px; margin-top:5px;">
@@ -135,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="display: flex; align-items: center; gap: 25px;">
                             <div style="display:flex; align-items:center; gap:8px;">
                                 <span style="font-weight: 800; color: var(--text-light);">倍速</span>
-                                <select id="audio-speed" onchange="changeAudioSpeed()" style="padding: 6px 10px; border-radius:10px; border:2px solid var(--border); font-weight:bold; outline:none;">
+                                <select id="audio-speed" onchange="changeAudioSpeed()" style="padding: 6px 10px; border-radius:10px; border:2px solid var(--border); font-weight:bold; outline:none; cursor:pointer;">
                                     <option value="0.75">0.75x</option><option value="1.0" selected>1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option>
                                 </select>
                             </div>
@@ -237,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </div>
                             </div>
                             <div id="quiz-setup" class="hidden" style="margin-bottom:20px;">
-                                <textarea id="quiz-input" placeholder="格式:\nQ: 问题?\nA. 选项1\nB. 选项2\n答案: A\n解析: 这里写解析..." style="height:150px; font-family:monospace; background:var(--primary-light);"></textarea>
+                                <textarea id="quiz-input" placeholder="格式:\\nQ: 问题?\\nA. 选项1\\nB. 选项2\\n答案: A\\n解析: 这里写解析..." style="height:150px; font-family:monospace; background:var(--primary-light);"></textarea>
                                 <button class="btn" style="width:100%; margin-top:10px;" onclick="parseListeningQuiz()">生成考卷</button>
                             </div>
                             <div id="listen-quiz-display" style="padding: 30px; border-radius: 15px; border: 2px dashed var(--border); margin-bottom:20px;">
@@ -259,7 +263,14 @@ document.addEventListener('DOMContentLoaded', () => {
     bindAudioEvents();
     renderAudioSidebar();
     switchListenTab('sub'); // 默认显示字幕选项卡
-});
+}
+
+// 强制执行 UI 渲染（无论是在文档加载中还是加载后）
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initListenUI);
+} else {
+    initListenUI();
+}
 
 // =========================================================================
 // 4. 音频网盘管理与播放逻辑
@@ -362,7 +373,7 @@ async function playAudioTrack(id) {
 
     try {
         let blob = await getAudioBlob(id);
-        if(!blob) return alert("❌ 无法在本地数据库找到该音频文件，可能已被清理。请重新导入。");
+        if(!blob) return alert("❌ 无法在本地数据库找到该音频文件，可能已被浏览器自动清理。请重新导入。");
         
         let url = URL.createObjectURL(blob);
         let player = document.getElementById('audio-element');
@@ -370,7 +381,7 @@ async function playAudioTrack(id) {
         player.play();
         document.getElementById('btn-play-pause').innerHTML = '⏸ 暂停';
         
-        // 重置所有工具状态
+        // 重置字幕高亮
         document.querySelectorAll('.sub-line').forEach(s => s.classList.remove('active-sub'));
     } catch(e) {
         alert("播放失败: " + e.message);
@@ -409,7 +420,6 @@ function bindAudioEvents() {
             document.getElementById('audio-total').innerText = formatTime(dur);
             if (dur > 0) progress.value = (cur / dur) * 100;
 
-            // 同步字幕高亮与滚动
             if (parsedSubtitles && parsedSubtitles.length > 0) {
                 let activeIdx = -1;
                 for (let i = 0; i < parsedSubtitles.length; i++) {
@@ -472,8 +482,7 @@ function switchListenTab(tabId) {
     let target = document.getElementById(`tab-${tabId}`);
     if(target) target.style.display = 'block';
     
-    // 切换到错题本时自动渲染
-    if(tabId === 'quiz') renderListenErrors();
+    if(tabId === 'quiz' && typeof renderListenErrors === 'function') renderListenErrors();
 }
 
 // ---- 功能 1: 互动字幕 ----
